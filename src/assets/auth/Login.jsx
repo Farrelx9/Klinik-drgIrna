@@ -1,11 +1,11 @@
 import React from "react";
-import BG1 from "../assets/Original.jpg";
-import LOGO from "../assets/—Pngtree—creative company_1420804.png";
+import BG1 from "../images/Original.jpg";
+import LOGO from "../images/—Pngtree—creative company_1420804.png";
 
 export default function Login() {
   return (
     <div className="flex h-screen">
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-8 shadow-xl">
+      <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8 shadow-xl">
         <img
           src={LOGO}
           className="w-32 h-auto mb-4 object-contain"
@@ -45,7 +45,7 @@ export default function Login() {
           </a>
         </div>
       </div>
-      <div className="hidden md:block w-1/2 h-full items-center justify-center">
+      <div className="hidden lg:block w-1/2 h-full items-center justify-center">
         <img
           src={BG1}
           alt="background"
