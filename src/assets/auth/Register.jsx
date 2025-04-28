@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/actions/authActions";
-import BG1 from "../images/Original.jpg";
-import LOGO from "../images/—Pngtree—creative company_1420804.png";
+import BG1 from "../images/dental2.jpg";
+import LOGO from "../images/Logoklinik.png";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,15 +34,21 @@ export default function Register() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen font-poppins">
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8">
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-8 left-8 flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" />
+          <span>Kembali</span>
+        </button>
         <img
           src={LOGO}
-          className="w-32 h-auto mb-4 object-contain"
+          className="w-60 h-auto mb-4 object-contain"
           style={{ maxWidth: "100%", maxHeight: "100px" }}
         />
-        <h1 className="text-3xl font-bold mb-4">Create an account</h1>
-        <p className="mb-6">Please enter your details</p>
+        <h1 className="text-2xl font-bold mb-4">Create an account</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="w-full">
           <input

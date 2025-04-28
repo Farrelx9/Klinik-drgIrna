@@ -6,6 +6,8 @@ import Register from "./assets/auth/Register";
 import { Provider } from "react-redux";
 import store from "./redux/store";
 import Appointment from "./pages/Appointment";
+import Konsultasi from "./pages/Konsultasi";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/appointment" element={<Appointment />} />
+          <Route path="/konsultasi" element={<Konsultasi />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Router>
     </Provider>
