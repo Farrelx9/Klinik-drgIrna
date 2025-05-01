@@ -31,9 +31,10 @@ export default function Navbar() {
           className="h-7 w-auto hover:cursor-pointer hover:scale-105"
         />
       </div>
-      <div className="flex gap-10 font-poppins font-medium text-xl">
-        <div className="hover:cursor-pointer hover:scale-105">Login</div>
-        <div className="hover:cursor-pointer hover:scale-105">Login</div>
+      <div className="flex gap-10 font-poppins font-semibold text-lg">
+        <div className="hover:cursor-pointer hover:scale-105">Tentang Kami</div>
+        <div className="hover:cursor-pointer hover:scale-105">Pelayanan</div>
+        <div className="hover:cursor-pointer hover:scale-105">Testimoni</div>
         <div className="hover:cursor-pointer hover:scale-105">Login</div>
       </div>
     </div>
