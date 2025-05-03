@@ -43,8 +43,8 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gray-100 ">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 pt-16">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 pt-16">
+        <div className="max-w-4xl mx-auto py-5">
           {/* Profile Header */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <div className="flex items-center">
