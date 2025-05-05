@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import {
   FaUser,
@@ -7,20 +8,17 @@ import {
   FaCog,
   FaEdit,
 } from "react-icons/fa";
+import { fetchProfile } from "../redux/actions/authActions";
 
 export default function Profile() {
+  const dispatch = useDispatch();
+  const { user, loading, error } = useSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState("personal");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  // Sample user data
-  const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+62 812-3456-7890",
-    address: "Jl. Contoh No. 123, Jakarta",
-    birthDate: "01 Januari 1990",
-    gender: "Pria",
-  };
+  useEffect(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
 
   // Sample appointment history
   const appointmentHistory = [
@@ -40,6 +38,29 @@ export default function Profile() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-blue-500 text-xl">Loading...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-red-500 text-xl">{error}</span>
+      </div>
+    );
+  }
+
+  // Pastikan user ada sebelum render
+  if (!user || !user.user) {
+    return null;
+  }
+
+  const profile = user.user; // karena backend Anda return { user: { ... } }
+
   return (
     <div className="min-h-screen bg-gray-100 ">
       <Navbar />
@@ -53,9 +74,9 @@ export default function Profile() {
               </div>
               <div className="ml-6">
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {userData.name}
+                  {profile.nama}
                 </h1>
-                <p className="text-gray-600">{userData.email}</p>
+                <p className="text-gray-600">{profile.email}</p>
                 <button className="mt-2 flex items-center text-blue-600 hover:text-blue-700">
                   <FaEdit className="mr-1" />
                   Edit Profil
@@ -121,37 +142,47 @@ export default function Profile() {
                     <label className="block text-sm font-medium text-gray-700">
                       Nama Lengkap
                     </label>
-                    <p className="mt-1 text-gray-900">{userData.name}</p>
+                    <p className="mt-1 text-gray-900">{profile.nama}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Username
+                    </label>
+                    <p className="mt-1 text-gray-900">{profile.username}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Email
                     </label>
-                    <p className="mt-1 text-gray-900">{userData.email}</p>
+                    <p className="mt-1 text-gray-900">{profile.email}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Nomor Telepon
                     </label>
-                    <p className="mt-1 text-gray-900">{userData.phone}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Tanggal Lahir
-                    </label>
-                    <p className="mt-1 text-gray-900">{userData.birthDate}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Kelamin
-                    </label>
-                    <p className="mt-1 text-gray-900">{userData.gender}</p>
+                    <p className="mt-1 text-gray-900">{profile.noTelp}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Alamat
                     </label>
-                    <p className="mt-1 text-gray-900">{userData.address}</p>
+                    <p className="mt-1 text-gray-900">{profile.alamat}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    <p className="mt-1 text-gray-900">{profile.role}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Status Verifikasi
+                    </label>
+                    <p className="mt-1 text-gray-900">
+                      {profile.is_verified
+                        ? "Terverifikasi"
+                        : "Belum Verifikasi"}
+                    </p>
                   </div>
                 </div>
               )}

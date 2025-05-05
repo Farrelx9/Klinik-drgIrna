@@ -11,10 +11,14 @@ export default function Register() {
   const { loading, error } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
+    nama: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    noTelp: "",
+    alamat: "",
+    role: "user",
+    is_verified: "false",
   });
 
   const handleChange = (e) => {
@@ -24,13 +28,16 @@ export default function Register() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
+    try {
+      const success = await dispatch(register(formData));
+      if (success) {
+        navigate("/verify-otp");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
     }
-    dispatch(register(formData));
   };
 
   return (
@@ -53,11 +60,21 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="w-full">
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            className="border p-2 mb-4 w-full"
+            placeholder="Username"
+            required
+          />
+          <input
+            type="text"
+            name="nama"
+            value={formData.nama}
             onChange={handleChange}
             className="border p-2 mb-4 w-full"
             placeholder="Full name"
+            required
           />
           <input
             type="email"
@@ -66,6 +83,7 @@ export default function Register() {
             onChange={handleChange}
             className="border p-2 mb-4 w-full"
             placeholder="Email address"
+            required
           />
           <input
             type="password"
@@ -74,14 +92,24 @@ export default function Register() {
             onChange={handleChange}
             className="border p-2 mb-4 w-full"
             placeholder="Password"
+            required
           />
           <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
+            type="tel"
+            name="noTelp"
+            value={formData.noTelp}
             onChange={handleChange}
             className="border p-2 mb-4 w-full"
-            placeholder="Confirm password"
+            placeholder="Phone number"
+            required
+          />
+          <textarea
+            name="alamat"
+            value={formData.alamat}
+            onChange={handleChange}
+            className="border p-2 mb-4 w-full"
+            placeholder="Address"
+            required
           />
           <button
             type="submit"

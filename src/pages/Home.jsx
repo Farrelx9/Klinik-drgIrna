@@ -100,7 +100,7 @@ export default function Beranda() {
 
         {/* Informasi Layanan */}
         <div className="w-full bg-white py-16">
-          <div className="container mx-auto px-6 p-16 rounded-xl bg-[#F8F5E9] max-w-[85rem]">
+          <div className="container mx-auto px-6 p-16 rounded-xl bg-[#F8F5E9] max-w-[70rem]">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD]">
                 What Service We Offer

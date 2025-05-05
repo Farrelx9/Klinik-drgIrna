@@ -22,9 +22,12 @@ export default function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(login(formData.email, formData.password));
+    const success = await dispatch(login(formData.email, formData.password));
+    if (success) {
+      navigate("/");
+    }
   };
 
   return (
