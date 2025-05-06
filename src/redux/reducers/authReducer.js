@@ -9,13 +9,23 @@ import {
   FETCH_PROFILE_REQUEST,
   FETCH_PROFILE_SUCCESS,
   FETCH_PROFILE_FAILURE,
+  REQUEST_CHANGE_PASSWORD_OTP_REQUEST,
+  REQUEST_CHANGE_PASSWORD_OTP_SUCCESS,
+  REQUEST_CHANGE_PASSWORD_OTP_FAILURE,
+  CHANGE_PASSWORD_REQUEST,
+  CHANGE_PASSWORD_SUCCESS,
+  CHANGE_PASSWORD_FAILURE,
+  UPDATE_PROFILE_REQUEST,
+  UPDATE_PROFILE_SUCCESS,
+  UPDATE_PROFILE_FAILURE,
 } from "../types/authTypes";
 
 const initialState = {
-  user: null,
-  loading: false,
-  error: null,
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem("token"),
+  user: localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user"))
+    : null,
+  token: localStorage.getItem("token"),
 };
 
 const authReducer = (state = initialState, action) => {
@@ -32,7 +42,8 @@ const authReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        user: action.payload,
+        user: action.payload.user,
+        token: action.payload.token,
         isAuthenticated: true,
         error: null,
       };
@@ -46,7 +57,10 @@ const authReducer = (state = initialState, action) => {
       };
     case LOGOUT:
       return {
-        ...initialState,
+        ...state,
+        isAuthenticated: false,
+        user: null,
+        token: null,
       };
     case FETCH_PROFILE_REQUEST:
       return {
@@ -62,6 +76,37 @@ const authReducer = (state = initialState, action) => {
         error: null,
       };
     case FETCH_PROFILE_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case REQUEST_CHANGE_PASSWORD_OTP_REQUEST:
+      return { ...state, loading: true, error: null };
+    case REQUEST_CHANGE_PASSWORD_OTP_SUCCESS:
+      return { ...state, loading: false, error: null };
+    case REQUEST_CHANGE_PASSWORD_OTP_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    case CHANGE_PASSWORD_REQUEST:
+      return { ...state, loading: true, error: null };
+    case CHANGE_PASSWORD_SUCCESS:
+      return { ...state, loading: false, error: null };
+    case CHANGE_PASSWORD_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    case UPDATE_PROFILE_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case UPDATE_PROFILE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        user: action.payload,
+        error: null,
+      };
+    case UPDATE_PROFILE_FAILURE:
       return {
         ...state,
         loading: false,

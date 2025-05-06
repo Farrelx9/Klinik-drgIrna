@@ -1,0 +1,50 @@
+import axios from "axios";
+import {
+  UPDATE_PROFILE_REQUEST,
+  UPDATE_PROFILE_SUCCESS,
+  UPDATE_PROFILE_FAILURE,
+} from "../types/authTypes";
+
+//update profile dengan PUT
+export const updateProfile = (profileData) => {
+  return async (dispatch) => {
+    dispatch({ type: UPDATE_PROFILE_REQUEST });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        "http://localhost:3000/api/auth/profile",
+        profileData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+        // Update user data in localStorage
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        const updatedUser = { ...currentUser, ...data.user };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.user });
+        return true;
+      } else {
+        dispatch({
+          type: UPDATE_PROFILE_FAILURE,
+          payload: "Gagal mengupdate profile",
+        });
+        return false;
+      }
+    } catch (error) {
+      let errorMessage = "Terjadi kesalahan saat mengupdate profile";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      dispatch({ type: UPDATE_PROFILE_FAILURE, payload: errorMessage });
+      return false;
+    }
+  };
+};

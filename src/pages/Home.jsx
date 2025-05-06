@@ -1,9 +1,30 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import drgIrna from "../assets/images/drg irna.png";
+import { useDispatch } from "react-redux";
+import { loginSuccess, logout } from "../redux/actions/authActions";
+import { useNavigate } from "react-router-dom";
 
 export default function Beranda() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+    if (token && userData) {
+      dispatch(loginSuccess({ user: JSON.parse(userData), token }));
+    }
+  }, [dispatch]);
+
+  const confirmLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    dispatch(logout());
+    navigate("/login");
+  };
+
   return (
     <div>
       <Navbar />
@@ -100,7 +121,7 @@ export default function Beranda() {
 
         {/* Informasi Layanan */}
         <div className="w-full bg-white py-16">
-          <div className="container mx-auto px-6 p-16 rounded-xl bg-[#F8F5E9] max-w-[70rem]">
+          <div className="container mx-auto px-6 p-16 rounded-xl bg-[#F8F5E9] max-w-[75rem]">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD]">
                 What Service We Offer

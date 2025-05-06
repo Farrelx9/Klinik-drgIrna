@@ -13,6 +13,12 @@ import {
   FETCH_PROFILE_REQUEST,
   FETCH_PROFILE_SUCCESS,
   FETCH_PROFILE_FAILURE,
+  REQUEST_CHANGE_PASSWORD_OTP_REQUEST,
+  REQUEST_CHANGE_PASSWORD_OTP_SUCCESS,
+  REQUEST_CHANGE_PASSWORD_OTP_FAILURE,
+  CHANGE_PASSWORD_REQUEST,
+  CHANGE_PASSWORD_SUCCESS,
+  CHANGE_PASSWORD_FAILURE,
 } from "../types/authTypes";
 
 // Login Actions
@@ -304,6 +310,65 @@ export const fetchProfile = () => {
         errorMessage = error.response.data.message;
       }
       dispatch(fetchProfileFailure(errorMessage));
+    }
+  };
+};
+
+// Request OTP untuk perubahan password
+export const requestChangePasswordOtp = (oldPassword) => {
+  return async (dispatch) => {
+    dispatch({ type: REQUEST_CHANGE_PASSWORD_OTP_REQUEST });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/requestChangePasswordOtp",
+        { oldPassword },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      dispatch({
+        type: REQUEST_CHANGE_PASSWORD_OTP_SUCCESS,
+        payload: response.data,
+      });
+      return true;
+    } catch (error) {
+      dispatch({
+        type: REQUEST_CHANGE_PASSWORD_OTP_FAILURE,
+        payload: error.response?.data?.message || "Gagal request OTP",
+      });
+      return false;
+    }
+  };
+};
+
+// Change password dengan OTP
+export const changePassword = (kode_otp, newPassword, oldPassword) => {
+  return async (dispatch) => {
+    dispatch({ type: CHANGE_PASSWORD_REQUEST });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/changePassword",
+        { kode_otp, newPassword, oldPassword },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      dispatch({ type: CHANGE_PASSWORD_SUCCESS, payload: response.data });
+      return true;
+    } catch (error) {
+      dispatch({
+        type: CHANGE_PASSWORD_FAILURE,
+        payload: error.response?.data?.message || "Gagal change password",
+      });
+      return false;
     }
   };
 };
