@@ -100,6 +100,7 @@ const authReducer = (state = initialState, action) => {
         error: null,
       };
     case UPDATE_PROFILE_SUCCESS:
+      console.log("Updated user in reducer:", action.payload);
       return {
         ...state,
         loading: false,

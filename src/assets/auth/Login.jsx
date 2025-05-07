@@ -89,7 +89,7 @@ export default function Login() {
         </div>
         <div className="mt-4">
           <span>Don't have an account? </span>
-          <a href="#" className="text-blue-500">
+          <a onClick={() => navigate("/register")} className="text-blue-500">
             Sign up
           </a>
         </div>

@@ -61,16 +61,14 @@ export default function Profile() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (user?.user) {
+    if (user) {
       setEditFormData({
-        nama: user.user.nama || "",
-        username: user.user.username || "",
-        noTelp: user.user.noTelp || "",
-        alamat: user.user.alamat || "",
+        nama: user.nama || "",
+        username: user.username || "",
+        noTelp: user.noTelp || "",
+        alamat: user.alamat || "",
       });
-      setPreviewImage(
-        user.user.profilePicture ? user.user.profilePicture : null
-      );
+      setPreviewImage(user.profilePicture ? user.profilePicture : null);
     }
   }, [user]);
 
@@ -106,12 +104,12 @@ export default function Profile() {
   const handleCancelEdit = () => {
     setIsEditingProfile(false);
     setProfilePicture(null);
-    setPreviewImage(user.user.profilePicture ? user.user.profilePicture : null);
+    setPreviewImage(user.profilePicture ? user.profilePicture : null);
     setEditFormData({
-      nama: user.user.nama || "",
-      username: user.user.username || "",
-      noTelp: user.user.noTelp || "",
-      alamat: user.user.alamat || "",
+      nama: user.nama || "",
+      username: user.username || "",
+      noTelp: user.noTelp || "",
+      alamat: user.alamat || "",
     });
   };
 
@@ -126,11 +124,19 @@ export default function Profile() {
       formData.append("profilePicture", profilePicture);
     }
 
-    const success = await dispatch(profileActionsUpdateProfile(formData));
-    if (success) {
-      setIsEditingProfile(false);
-      setProfilePicture(null);
-      dispatch(fetchProfile());
+    try {
+      const success = await dispatch(profileActionsUpdateProfile(formData));
+      if (success) {
+        setIsEditingProfile(false);
+        setProfilePicture(null);
+        dispatch(fetchProfile());
+      } else {
+        console.error("Update profile failed");
+        // Tampilkan pesan kesalahan kepada pengguna
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      // Tampilkan pesan kesalahan kepada pengguna
     }
   };
 
@@ -165,11 +171,9 @@ export default function Profile() {
     );
   }
 
-  if (!user || !user.user) {
-    return null;
-  }
+  if (!user) return null;
 
-  const profile = user.user;
+  const profile = user;
 
   return (
     <div className="min-h-screen bg-gray-100">

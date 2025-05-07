@@ -30,7 +30,7 @@ export default function VerifyOTP() {
     e.preventDefault();
     const success = await dispatch(verifyOtp(userId, otp));
     if (success) {
-      navigate("/");
+      navigate("/login");
     }
   };
 

@@ -24,6 +24,7 @@ export const updateProfile = (profileData) => {
 
       if (response.status === 200) {
         const data = response.data;
+        console.log("Profile update response data:", data);
         // Update user data in localStorage
         const currentUser = JSON.parse(localStorage.getItem("user"));
         const updatedUser = { ...currentUser, ...data.user };

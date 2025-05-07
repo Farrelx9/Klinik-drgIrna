@@ -115,15 +115,23 @@ export const login = (email, password) => {
         const data = response.data;
         console.log("Login response:", data);
 
-        // Simpan data user dan token ke localStorage
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
         if (data.token) {
           localStorage.setItem("token", data.token);
+          // Setelah simpan token, fetch profile
+          const profileResponse = await axios.get(
+            "http://localhost:3000/api/auth/profile",
+            {
+              headers: { Authorization: `Bearer ${data.token}` },
+            }
+          );
+          localStorage.setItem(
+            "user",
+            JSON.stringify(profileResponse.data.user)
+          );
+          dispatch(
+            loginSuccess({ user: profileResponse.data.user, token: data.token })
+          );
         }
-
-        dispatch(loginSuccess(data));
         return true; // Return true to indicate successful login
       } else {
         dispatch(loginFailure("Login failed"));
@@ -285,7 +293,6 @@ export const fetchProfile = () => {
   return async (dispatch) => {
     dispatch(fetchProfileRequest());
     try {
-      // Ambil token dari localStorage jika perlu autentikasi
       const token = localStorage.getItem("token");
       const response = await axios.get(
         "http://localhost:3000/api/auth/profile",
@@ -299,8 +306,7 @@ export const fetchProfile = () => {
 
       if (response.status === 200) {
         const data = response.data;
-        // Pastikan backend mengirim data sesuai body yang Anda sebutkan
-        dispatch(fetchProfileSuccess(data));
+        dispatch(fetchProfileSuccess(data.user));
       } else {
         dispatch(fetchProfileFailure("Failed to fetch profile"));
       }
