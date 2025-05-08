@@ -83,7 +83,10 @@ export default function Login() {
           Sign in with Google
         </button>
         <div>
-          <a href="#" className="text-blue-500">
+          <a
+            onClick={() => navigate("/forgotPassword")}
+            className="text-blue-500"
+          >
             Forgot password?
           </a>
         </div>

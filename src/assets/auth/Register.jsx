@@ -11,14 +11,8 @@ export default function Register() {
   const { loading, error } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "",
-    nama: "",
     email: "",
     password: "",
-    noTelp: "",
-    alamat: "",
-    role: "user",
-    is_verified: "false",
   });
 
   const handleChange = (e) => {
@@ -59,24 +53,6 @@ export default function Register() {
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="w-full">
           <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            className="border p-2 mb-4 w-full"
-            placeholder="Username"
-            required
-          />
-          <input
-            type="text"
-            name="nama"
-            value={formData.nama}
-            onChange={handleChange}
-            className="border p-2 mb-4 w-full"
-            placeholder="Full name"
-            required
-          />
-          <input
             type="email"
             name="email"
             value={formData.email}
@@ -94,23 +70,6 @@ export default function Register() {
             placeholder="Password"
             required
           />
-          <input
-            type="tel"
-            name="noTelp"
-            value={formData.noTelp}
-            onChange={handleChange}
-            className="border p-2 mb-4 w-full"
-            placeholder="Phone number"
-            required
-          />
-          <textarea
-            name="alamat"
-            value={formData.alamat}
-            onChange={handleChange}
-            className="border p-2 mb-4 w-full"
-            placeholder="Address"
-            required
-          />
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded w-full mb-4"
@@ -119,9 +78,6 @@ export default function Register() {
             {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
-        <button className="bg-white border border-blue-500 text-blue-500 p-2 rounded w-full mb-4">
-          Sign up with Google
-        </button>
         <div className="mt-4">
           <span>Already have an account? </span>
           <a href="/login" className="text-blue-500">

@@ -51,9 +51,10 @@ export default function Profile() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editFormData, setEditFormData] = useState({
     nama: "",
-    username: "",
     noTelp: "",
     alamat: "",
+    tanggal_lahir: "",
+    jenis_kelamin: "",
   });
 
   useEffect(() => {
@@ -63,12 +64,15 @@ export default function Profile() {
   useEffect(() => {
     if (user) {
       setEditFormData({
-        nama: user.nama || "",
-        username: user.username || "",
-        noTelp: user.noTelp || "",
-        alamat: user.alamat || "",
+        nama: user.pasien?.nama || "",
+        noTelp: user.pasien?.noTelp || "",
+        alamat: user.pasien?.alamat || "",
+        tanggal_lahir: user.pasien?.tanggal_lahir
+          ? new Date(user.pasien.tanggal_lahir).toISOString().split("T")[0]
+          : "",
+        jenis_kelamin: user.pasien?.jenis_kelamin || "",
       });
-      setPreviewImage(user.profilePicture ? user.profilePicture : null);
+      setPreviewImage(user.pasien?.profilePicture || null);
     }
   }, [user]);
 
@@ -104,12 +108,15 @@ export default function Profile() {
   const handleCancelEdit = () => {
     setIsEditingProfile(false);
     setProfilePicture(null);
-    setPreviewImage(user.profilePicture ? user.profilePicture : null);
+    setPreviewImage(user.pasien?.profilePicture || null);
     setEditFormData({
-      nama: user.nama || "",
-      username: user.username || "",
-      noTelp: user.noTelp || "",
-      alamat: user.alamat || "",
+      nama: user.pasien?.nama || "",
+      noTelp: user.pasien?.noTelp || "",
+      alamat: user.pasien?.alamat || "",
+      tanggal_lahir: user.pasien?.tanggal_lahir
+        ? new Date(user.pasien.tanggal_lahir).toISOString().split("T")[0]
+        : "",
+      jenis_kelamin: user.pasien?.jenis_kelamin || "",
     });
   };
 
@@ -117,9 +124,10 @@ export default function Profile() {
     e.preventDefault();
     const formData = new FormData();
     formData.append("nama", editFormData.nama);
-    formData.append("username", editFormData.username);
     formData.append("noTelp", editFormData.noTelp);
     formData.append("alamat", editFormData.alamat);
+    formData.append("tanggal_lahir", editFormData.tanggal_lahir);
+    formData.append("jenis_kelamin", editFormData.jenis_kelamin);
     if (profilePicture) {
       formData.append("profilePicture", profilePicture);
     }
@@ -132,11 +140,9 @@ export default function Profile() {
         dispatch(fetchProfile());
       } else {
         console.error("Update profile failed");
-        // Tampilkan pesan kesalahan kepada pengguna
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      // Tampilkan pesan kesalahan kepada pengguna
     }
   };
 
@@ -206,16 +212,30 @@ export default function Profile() {
                 </div>
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold">{profile.nama}</h2>
-                <p className="text-gray-600">@{profile.username}</p>
+                <h2 className="text-2xl font-bold">
+                  {user.pasien?.nama || "Nama belum diisi"}
+                </h2>
+                <p className="text-gray-600">{user.email}</p>
                 <div className="mt-2 space-y-1">
                   <p className="text-gray-600">
                     <span className="font-medium">No. Telepon:</span>{" "}
-                    {profile.noTelp || "-"}
+                    {user.pasien?.noTelp || "-"}
                   </p>
                   <p className="text-gray-600">
                     <span className="font-medium">Alamat:</span>{" "}
-                    {profile.alamat || "-"}
+                    {user.pasien?.alamat || "-"}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Tanggal Lahir:</span>{" "}
+                    {user.pasien?.tanggal_lahir
+                      ? new Date(user.pasien.tanggal_lahir).toLocaleDateString(
+                          "id-ID"
+                        )
+                      : "-"}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Jenis Kelamin:</span>{" "}
+                    {user.pasien?.jenis_kelamin || "-"}
                   </p>
                 </div>
               </div>
@@ -293,28 +313,8 @@ export default function Profile() {
                           className="w-full p-2 border rounded"
                         />
                       ) : (
-                        <p className="p-2 bg-gray-50 rounded">{profile.nama}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Username
-                      </label>
-                      {isEditingProfile ? (
-                        <input
-                          type="text"
-                          value={editFormData.username}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              username: e.target.value,
-                            })
-                          }
-                          className="w-full p-2 border rounded"
-                        />
-                      ) : (
                         <p className="p-2 bg-gray-50 rounded">
-                          {profile.username}
+                          {user.pasien?.nama || "-"}
                         </p>
                       )}
                     </div>
@@ -322,7 +322,7 @@ export default function Profile() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Email
                       </label>
-                      <p className="p-2 bg-gray-50 rounded">{profile.email}</p>
+                      <p className="p-2 bg-gray-50 rounded">{user.email}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -342,7 +342,58 @@ export default function Profile() {
                         />
                       ) : (
                         <p className="p-2 bg-gray-50 rounded">
-                          {profile.noTelp || "-"}
+                          {user.pasien?.noTelp || "-"}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tanggal Lahir
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="date"
+                          value={editFormData.tanggal_lahir}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              tanggal_lahir: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded"
+                        />
+                      ) : (
+                        <p className="p-2 bg-gray-50 rounded">
+                          {user.pasien?.tanggal_lahir
+                            ? new Date(
+                                user.pasien.tanggal_lahir
+                              ).toLocaleDateString("id-ID")
+                            : "-"}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Jenis Kelamin
+                      </label>
+                      {isEditingProfile ? (
+                        <select
+                          value={editFormData.jenis_kelamin}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              jenis_kelamin: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="">Pilih Jenis Kelamin</option>
+                          <option value="Laki-laki">Laki-laki</option>
+                          <option value="Perempuan">Perempuan</option>
+                        </select>
+                      ) : (
+                        <p className="p-2 bg-gray-50 rounded">
+                          {user.pasien?.jenis_kelamin || "-"}
                         </p>
                       )}
                     </div>
@@ -364,7 +415,7 @@ export default function Profile() {
                         />
                       ) : (
                         <p className="p-2 bg-gray-50 rounded">
-                          {profile.alamat || "-"}
+                          {user.pasien?.alamat || "-"}
                         </p>
                       )}
                     </div>

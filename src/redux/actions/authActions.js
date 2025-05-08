@@ -246,7 +246,8 @@ export const verifyOtp = (userId, otp) => {
   };
 };
 
-export const resendOtp = () => {
+//resend otp
+export const resendOtp = (purpose) => {
   return async (dispatch) => {
     dispatch(resendOtpRequest());
     try {
@@ -262,7 +263,7 @@ export const resendOtp = () => {
 
       const response = await axios.post(
         "http://localhost:3000/api/auth/sendOtp",
-        { email },
+        { email, purpose }, // kirim purpose jika diberikan
         { headers: { "Content-Type": "application/json" } }
       );
 
@@ -288,7 +289,7 @@ export const resendOtp = () => {
     }
   };
 };
-
+//fetch profile
 export const fetchProfile = () => {
   return async (dispatch) => {
     dispatch(fetchProfileRequest());
@@ -377,4 +378,114 @@ export const changePassword = (kode_otp, newPassword, oldPassword) => {
       return false;
     }
   };
+};
+
+// Forgot Password - Kirim OTP ke email
+export const forgotPassword = (email) => async (dispatch) => {
+  try {
+    dispatch({ type: "AUTH_REQUEST" });
+
+    const response = await fetch(
+      "http://localhost:3000/api/auth/forgotPassword",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Terjadi kesalahan");
+    }
+
+    dispatch({
+      type: "PASSWORD_RESET_REQUEST_SUCCESS",
+      payload: data,
+    });
+
+    return true;
+  } catch (error) {
+    dispatch({
+      type: "AUTH_FAILURE",
+      payload: error.message,
+    });
+    return false;
+  }
+};
+
+// Reset Password - Verifikasi OTP
+export const verifyResetOtp = (email, kode_otp) => async (dispatch) => {
+  try {
+    dispatch({ type: "AUTH_REQUEST" });
+
+    const response = await fetch(
+      "http://localhost:3000/api/auth/resetPassword",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, kode_otp }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "OTP tidak valid atau kadaluarsa");
+    }
+
+    dispatch({
+      type: "OTP_VERIFY_SUCCESS",
+      payload: data,
+    });
+
+    return true;
+  } catch (error) {
+    dispatch({
+      type: "AUTH_FAILURE",
+      payload: error.message,
+    });
+    return false;
+  }
+};
+
+// Update Password - Setelah OTP terverifikasi
+export const updatePassword = (email, newPassword) => async (dispatch) => {
+  try {
+    dispatch({ type: "AUTH_REQUEST" });
+
+    const response = await fetch(
+      "http://localhost:3000/api/auth/updatePassword",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, newPassword }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Gagal mengubah password");
+    }
+
+    dispatch({
+      type: "PASSWORD_RESET_SUCCESS",
+    });
+
+    return true;
+  } catch (error) {
+    dispatch({
+      type: "AUTH_FAILURE",
+      payload: error.message,
+    });
+    return false;
+  }
 };

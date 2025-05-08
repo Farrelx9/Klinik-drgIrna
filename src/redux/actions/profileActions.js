@@ -27,7 +27,14 @@ export const updateProfile = (profileData) => {
         console.log("Profile update response data:", data);
         // Update user data in localStorage
         const currentUser = JSON.parse(localStorage.getItem("user"));
-        const updatedUser = { ...currentUser, ...data.user };
+        // Preserve the existing user structure and update with new data
+        const updatedUser = {
+          ...currentUser,
+          pasien: {
+            ...currentUser.pasien,
+            ...data.user.pasien,
+          },
+        };
         localStorage.setItem("user", JSON.stringify(updatedUser));
 
         dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.user });

@@ -9,6 +9,9 @@ import store from "./redux/store";
 import Konsultasi from "./pages/Konsultasi";
 import Profile from "./pages/Profile";
 import JanjiTemu from "./pages/JanjiTemu";
+import ForgotPassword from "./assets/auth/forgotPassword";
+import ResetPassword from "./assets/auth/ResetPassword";
+import VerifyResetOTP from "./assets/auth/VerifyReset";
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
           <Route path="/janjiTemu" element={<JanjiTemu />} />
           <Route path="/konsultasi" element={<Konsultasi />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/reset" element={<ResetPassword />} />
+          <Route path="/verifyReset" element={<VerifyResetOTP />} />
         </Routes>
       </Router>
     </Provider>

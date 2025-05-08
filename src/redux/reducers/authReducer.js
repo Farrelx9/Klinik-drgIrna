@@ -21,10 +21,12 @@ import {
 } from "../types/authTypes";
 
 const initialState = {
-  isAuthenticated: !!localStorage.getItem("token"),
+  loading: false,
+  error: null,
   user: localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null,
+  isAuthenticated: !!localStorage.getItem("token"),
   token: localStorage.getItem("token"),
 };
 
@@ -32,6 +34,7 @@ const authReducer = (state = initialState, action) => {
   switch (action.type) {
     case LOGIN_REQUEST:
     case REGISTER_REQUEST:
+    case "AUTH_REQUEST":
       return {
         ...state,
         loading: true,
@@ -47,8 +50,17 @@ const authReducer = (state = initialState, action) => {
         isAuthenticated: true,
         error: null,
       };
+    case "AUTH_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        isAuthenticated: true,
+        user: action.payload,
+        error: null,
+      };
     case LOGIN_FAILURE:
     case REGISTER_FAILURE:
+    case "AUTH_FAILURE":
       return {
         ...state,
         loading: false,
@@ -57,10 +69,10 @@ const authReducer = (state = initialState, action) => {
       };
     case LOGOUT:
       return {
-        ...state,
-        isAuthenticated: false,
+        ...initialState,
         user: null,
         token: null,
+        isAuthenticated: false,
       };
     case FETCH_PROFILE_REQUEST:
       return {
@@ -84,6 +96,7 @@ const authReducer = (state = initialState, action) => {
     case REQUEST_CHANGE_PASSWORD_OTP_REQUEST:
       return { ...state, loading: true, error: null };
     case REQUEST_CHANGE_PASSWORD_OTP_SUCCESS:
+    case "PASSWORD_RESET_REQUEST_SUCCESS":
       return { ...state, loading: false, error: null };
     case REQUEST_CHANGE_PASSWORD_OTP_FAILURE:
       return { ...state, loading: false, error: action.payload };
@@ -100,7 +113,6 @@ const authReducer = (state = initialState, action) => {
         error: null,
       };
     case UPDATE_PROFILE_SUCCESS:
-      console.log("Updated user in reducer:", action.payload);
       return {
         ...state,
         loading: false,
@@ -112,6 +124,18 @@ const authReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: action.payload,
+      };
+    case "OTP_VERIFY_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        error: null,
+      };
+    case "PASSWORD_RESET_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        error: null,
       };
     default:
       return state;
