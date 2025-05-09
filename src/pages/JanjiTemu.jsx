@@ -1,167 +1,133 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createJanjiTemu,
-  getPatientJanjiTemu,
-} from "../redux/actions/janjiTemuActions";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import JadwalCard from "../components/JadwalCard";
+import { fetchJanjiTemu } from "../redux/actions/janjiTemuActions";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
-export default function JanjiTemu() {
-  const [formData, setFormData] = useState({
-    date: "",
-    time: "",
-    service: "",
-    message: "",
-  });
-
+const JanjiTemu = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { userInfo } = useSelector((state) => state.auth);
-  const { loading, janjiTemuList, error } = useSelector(
-    (state) => state.janjiTemu
-  );
+
+  const janjiTemu = useSelector((state) => state.janjiTemu);
+
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
-    if (userInfo?.id) {
-      dispatch(getPatientJanjiTemu(userInfo.id));
-    }
-  }, [dispatch, userInfo]);
+    dispatch(fetchJanjiTemu({ page: 1, limit: 10 }));
+  }, [dispatch]);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleSelect = (id) => {
+    setSelectedAppointment(id === selectedAppointment ? null : id);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Fallback data jika janjiTemu belum ada
+  const {
+    list = [],
+    meta = {
+      totalItems: 0,
+      itemCount: 10,
+      totalPages: 1,
+      currentPage: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    loading = false,
+    error = null,
+  } = janjiTemu || {};
 
-    try {
-      const janjiTemuData = {
-        id_pasien: userInfo.id,
-        tanggal_waktu: `${formData.date}T${formData.time}:00Z`,
-        keluhan: `${formData.service}: ${formData.message}`,
-        dokter: "drg. Irna",
-      };
-
-      await dispatch(createJanjiTemu(janjiTemuData));
-      toast.success("Janji temu berhasil dibuat!");
-      navigate("/");
-    } catch (err) {
-      toast.error(err.message || "Gagal membuat janji temu");
-    }
-  };
-
-  const services = [
-    "Pemeriksaan Gigi",
-    "Pembersihan Karang Gigi",
-    "Tambal Gigi",
-    "Cabut Gigi",
-    "Kawat Gigi",
-    "Veneer",
-    "Bleaching",
-  ];
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div>
       <Navbar />
-      <div className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-poppins font-bold text-center mb-2 text-gray-800">
-            Buat Janji Temu
-          </h1>
+      <div className="container mx-auto p-6 py-20">
+        <h2 className="text-2xl font-bold mb-6">Jadwal Tersedia</h2>
 
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
-            </div>
+        <div className="space-y-5">
+          {list.length > 0 ? (
+            list.map((appointment) => (
+              <JadwalCard
+                key={appointment.id_janji}
+                appointment={appointment}
+                onSelect={handleSelect}
+                isSelected={selectedAppointment === appointment.id_janji}
+              />
+            ))
+          ) : (
+            <p>Tidak ada jadwal tersedia.</p>
           )}
+        </div>
 
-          <div className="bg-white rounded-lg shadow-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Tanggal
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+        {/* Pagination UI */}
+        <div className="mt-6 grid grid-cols-3 gap-2">
+          {/* Tombol Sebelumnya */}
+          <button
+            disabled={!meta.hasPrevPage}
+            onClick={() =>
+              dispatch(
+                fetchJanjiTemu({
+                  page: meta.currentPage - 1,
+                  limit: meta.itemCount,
+                })
+              )
+            }
+            className="flex items-center justify-start gap-2 rounded-md border border-gray-300 px-3 py-1 text-sm font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            <span>Sebelumnya</span>
+          </button>
 
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Waktu
-                </label>
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+          {/* Halaman saat ini */}
+          <span className="col-span-1 rounded-md bg-gray-100 px-3 py-1 text-sm text-center font-medium self-center">
+            Halaman {meta.currentPage}
+          </span>
 
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Layanan
-                </label>
-                <select
-                  name="service"
-                  value={formData.service}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Pilih Layanan</option>
-                  {services.map((service) => (
-                    <option key={service} value={service}>
-                      {service}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Keluhan/Pesan
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows="4"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Jelaskan keluhan atau pesan Anda..."
-                ></textarea>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`bg-blue-600 text-white px-8 py-3 rounded-lg font-poppins font-medium hover:bg-blue-700 transition duration-300 ${
-                    loading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {loading ? "Memproses..." : "Buat Janji Temu"}
-                </button>
-              </div>
-            </form>
-          </div>
+          {/* Tombol Selanjutnya */}
+          <button
+            disabled={!meta.hasNextPage}
+            onClick={() =>
+              dispatch(
+                fetchJanjiTemu({
+                  page: meta.currentPage + 1,
+                  limit: meta.itemCount,
+                })
+              )
+            }
+            className="flex items-center justify-between gap-2 rounded-md border border-gray-300 px-3 py-1 text-sm text font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+          >
+            <span className="text-end">Selanjutnya</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4 ml-auto"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
         </div>
       </div>
-      <Footer />
     </div>
   );
-}
+};
+
+export default JanjiTemu;

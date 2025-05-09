@@ -28,6 +28,7 @@ function App() {
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/verifyReset" element={<VerifyResetOTP />} />
+          <Route path="/list-jadwal" element={<JanjiTemu />} />
         </Routes>
       </Router>
     </Provider>

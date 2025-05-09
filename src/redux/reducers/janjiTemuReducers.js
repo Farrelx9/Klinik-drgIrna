@@ -1,47 +1,41 @@
 import {
-  CREATE_JANJI_TEMU_REQUEST,
-  CREATE_JANJI_TEMU_SUCCESS,
-  CREATE_JANJI_TEMU_FAIL,
-  GET_JANJI_TEMU_REQUEST,
-  GET_JANJI_TEMU_SUCCESS,
-  GET_JANJI_TEMU_FAIL,
+  JANJITEMU_REQUEST,
+  JANJITEMU_SUCCESS,
+  JANJITEMU_FAILURE,
 } from "../types/janjiTemuTypes";
 
 const initialState = {
+  list: [],
+  meta: {
+    totalItems: 0,
+    itemCount: 10,
+    totalPages: 1,
+    currentPage: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
   loading: false,
-  janjiTemu: null,
-  janjiTemuList: [],
   error: null,
 };
 
-export const janjiTemuReducer = (state = initialState, action) => {
+const janjiTemuReducer = (state = initialState, action) => {
   switch (action.type) {
-    case CREATE_JANJI_TEMU_REQUEST:
-    case GET_JANJI_TEMU_REQUEST:
+    case JANJITEMU_REQUEST:
       return {
         ...state,
         loading: true,
         error: null,
       };
 
-    case CREATE_JANJI_TEMU_SUCCESS:
+    case JANJITEMU_SUCCESS:
       return {
         ...state,
+        list: action.payload.data,
+        meta: action.payload.meta,
         loading: false,
-        janjiTemu: action.payload,
-        error: null,
       };
 
-    case GET_JANJI_TEMU_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        janjiTemuList: action.payload,
-        error: null,
-      };
-
-    case CREATE_JANJI_TEMU_FAIL:
-    case GET_JANJI_TEMU_FAIL:
+    case JANJITEMU_FAILURE:
       return {
         ...state,
         loading: false,
@@ -52,3 +46,5 @@ export const janjiTemuReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+export default janjiTemuReducer;

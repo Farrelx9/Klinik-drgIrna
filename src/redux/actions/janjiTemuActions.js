@@ -1,66 +1,56 @@
-import axios from "axios";
 import {
-  CREATE_JANJI_TEMU_REQUEST,
-  CREATE_JANJI_TEMU_SUCCESS,
-  CREATE_JANJI_TEMU_FAIL,
-  GET_JANJI_TEMU_REQUEST,
-  GET_JANJI_TEMU_SUCCESS,
-  GET_JANJI_TEMU_FAIL,
+  JANJITEMU_REQUEST,
+  JANJITEMU_SUCCESS,
+  JANJITEMU_FAILURE,
 } from "../types/janjiTemuTypes";
 
-const API_URL = "http://localhost:3000/api";
+// Action: fetch janji temu
+export const fetchJanjiTemuRequest = () => ({
+  type: JANJITEMU_REQUEST,
+});
 
-export const createJanjiTemu = (janjiTemuData) => async (dispatch) => {
-  try {
-    dispatch({ type: CREATE_JANJI_TEMU_REQUEST });
+export const fetchJanjiTemuSuccess = (data, meta) => ({
+  type: JANJITEMU_SUCCESS,
+  payload: { data, meta },
+});
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
+export const fetchJanjiTemuFailure = (error) => ({
+  type: JANJITEMU_FAILURE,
+  payload: error,
+});
 
-    const { data } = await axios.post(
-      `${API_URL}/janji-temu`,
-      janjiTemuData,
-      config
-    );
+// Async Action: fetching dari API
+export const fetchJanjiTemu = ({ page = 1, limit = 10 }) => {
+  return async (dispatch) => {
+    dispatch(fetchJanjiTemuRequest()); // ✅ Sekarang fungsi ini didefinisikan
 
-    dispatch({
-      type: CREATE_JANJI_TEMU_SUCCESS,
-      payload: data,
-    });
+    try {
+      const token = localStorage.getItem("token");
 
-    return data;
-  } catch (error) {
-    dispatch({
-      type: CREATE_JANJI_TEMU_FAIL,
-      payload: error.response?.data?.message || "Gagal membuat janji temu",
-    });
-    throw error;
-  }
-};
+      if (!token) {
+        throw new Error("Token tidak tersedia");
+      }
 
-export const getPatientJanjiTemu = (patientId) => async (dispatch) => {
-  try {
-    dispatch({ type: GET_JANJI_TEMU_REQUEST });
+      const response = await fetch(
+        `http://localhost:3000/api/janjiTemu/available?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Kirim token
+          },
+        }
+      );
 
-    const { data } = await axios.get(
-      `${API_URL}/janji-temu/pasien/${patientId}`
-    );
+      const result = await response.json();
 
-    dispatch({
-      type: GET_JANJI_TEMU_SUCCESS,
-      payload: data,
-    });
+      if (!result.success) {
+        throw new Error(result.message || "Gagal memuat data");
+      }
 
-    return data;
-  } catch (error) {
-    dispatch({
-      type: GET_JANJI_TEMU_FAIL,
-      payload:
-        error.response?.data?.message || "Gagal mengambil data janji temu",
-    });
-    throw error;
-  }
+      dispatch(fetchJanjiTemuSuccess(result.data, result.meta));
+    } catch (error) {
+      dispatch(fetchJanjiTemuFailure(error.message));
+    }
+  };
 };
