@@ -18,6 +18,7 @@ import {
 import { updateProfile as profileActionsUpdateProfile } from "../redux/actions/profileActions";
 import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
 import defaultProfile from "../assets/images/drg irna.png";
+import { useNavigate } from "react-router-dom";
 
 const appointmentHistory = [
   {
@@ -38,6 +39,7 @@ const appointmentHistory = [
 
 export default function Profile() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user, loading, error } = useSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState("personal");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -58,8 +60,8 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch]);
+    dispatch(fetchProfile(navigate));
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     if (user) {

@@ -1,4 +1,8 @@
 import axios from "axios";
+import apiClient from "/src/assets/config/apiConfig";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // 🔥 Tambahkan ini di paling atas
+import "react-toastify/dist/ReactToastify.css";
 import {
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
@@ -101,15 +105,11 @@ export const fetchProfileFailure = (error) => ({
 });
 
 // Action creator untuk login menggunakan axios
-export const login = (email, password) => {
+export const login = (email, password, navigate) => {
   return async (dispatch) => {
     dispatch(loginRequest());
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await apiClient.post("/auth/login", { email, password });
 
       if (response.status === 200) {
         const data = response.data;
@@ -118,12 +118,9 @@ export const login = (email, password) => {
         if (data.token) {
           localStorage.setItem("token", data.token);
           // Setelah simpan token, fetch profile
-          const profileResponse = await axios.get(
-            "http://localhost:3000/api/auth/profile",
-            {
-              headers: { Authorization: `Bearer ${data.token}` },
-            }
-          );
+          const profileResponse = await apiClient.get("/auth/profile", {
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
           localStorage.setItem(
             "user",
             JSON.stringify(profileResponse.data.user)
@@ -143,6 +140,12 @@ export const login = (email, password) => {
 
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
+      }
+      // Tangani error 401
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login"); // Redirect ke halaman login
       }
 
       dispatch(loginFailure(errorMessage));
@@ -290,7 +293,7 @@ export const resendOtp = (purpose) => {
   };
 };
 //fetch profile
-export const fetchProfile = () => {
+export const fetchProfile = (navigate) => {
   return async (dispatch) => {
     dispatch(fetchProfileRequest());
     try {
@@ -317,6 +320,11 @@ export const fetchProfile = () => {
         errorMessage = error.response.data.message;
       }
       dispatch(fetchProfileFailure(errorMessage));
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     }
   };
 };
