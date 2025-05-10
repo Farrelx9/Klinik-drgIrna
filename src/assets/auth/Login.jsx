@@ -5,11 +5,16 @@ import BG1 from "../images/dental2.jpg";
 import LOGO from "../images/Logoklinik.png";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Ambil loading dan error dari Redux store
   const { loading, error } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,9 +29,27 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await dispatch(login(formData.email, formData.password));
+
+    // Dispatch action login
+    const success = await dispatch(
+      login(formData.email, formData.password, navigate)
+    );
+
     if (success) {
-      navigate("/");
+      // Tampilkan toast sukses
+      toast.success("Login berhasil!", {
+        autoClose: 1500,
+      });
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } else {
+      // Jika login gagal tapi tidak ada error dari dispatch
+      const errorMessage = error || "Gagal login. Silakan coba lagi.";
+      toast.error(errorMessage, {
+        autoClose: 3000,
+      });
     }
   };
 
@@ -50,6 +73,7 @@ export default function Login() {
         </h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
+
         <form onSubmit={handleSubmit} className="w-full">
           <input
             type="text"

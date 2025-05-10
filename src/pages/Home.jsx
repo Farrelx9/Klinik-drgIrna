@@ -12,7 +12,7 @@ export default function Beranda() {
       <Navbar />
       <div className="min-h-screen bg-gray-100 flex flex-col items-center text-gray-900 font-semibold font-poppins">
         {/* Hero Section */}
-        <div className="w-full bg-gradient-to-b from-[#1B56FD] to-[#1B56FD]/80 text-white">
+        <div className="w-full py-10 bg-gradient-to-b from-[#1B56FD] to-[#1B56FD]/80 text-white">
           <div className="container mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between z-10">
             <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
               <h1 className="text-2xl md:text-4xl mb-4">
