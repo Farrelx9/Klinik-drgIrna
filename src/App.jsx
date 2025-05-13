@@ -13,8 +13,10 @@ import JanjiTemu from "./pages/JanjiTemu";
 import ForgotPassword from "./assets/auth/forgotPassword";
 import ResetPassword from "./assets/auth/ResetPassword";
 import VerifyResetOTP from "./assets/auth/VerifyReset";
+import Notifikasi from "./pages/Notifikasi";
+import DashboardAdmin from "./admin/DashboardAdmin";
 
-import "react-toastify/dist/ReactToastify.css"; // ✅ Tambahkan baris ini
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -33,6 +35,12 @@ function App() {
             <Route path="/reset" element={<ResetPassword />} />
             <Route path="/verifyReset" element={<VerifyResetOTP />} />
             <Route path="/list-jadwal" element={<JanjiTemu />} />
+            <Route path="/notifikasi" element={<Notifikasi />} />
+            <Route path="/notifikasi" element={<Notifikasi />} />
+            //admin page
+            <>
+              <Route path="/dashboardadmin" element={<DashboardAdmin />} />
+            </>
           </Routes>
           <ToastContainer />
         </>

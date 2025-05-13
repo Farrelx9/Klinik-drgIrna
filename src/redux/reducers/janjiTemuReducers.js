@@ -2,6 +2,9 @@ import {
   JANJITEMU_REQUEST,
   JANJITEMU_SUCCESS,
   JANJITEMU_FAILURE,
+  BOOK_JANJITEMU_REQUEST,
+  BOOK_JANJITEMU_SUCCESS,
+  BOOK_JANJITEMU_FAILURE,
 } from "../types/janjiTemuTypes";
 
 const initialState = {
@@ -16,6 +19,10 @@ const initialState = {
   },
   loading: false,
   error: null,
+
+  // 🔹 Tambah state untuk booking
+  isBooking: false,
+  bookingError: null,
 };
 
 const janjiTemuReducer = (state = initialState, action) => {
@@ -30,8 +37,8 @@ const janjiTemuReducer = (state = initialState, action) => {
     case JANJITEMU_SUCCESS:
       return {
         ...state,
-        list: action.payload.data,
-        meta: action.payload.meta,
+        list: action.payload.data || [],
+        meta: action.payload.meta || state.meta,
         loading: false,
       };
 
@@ -40,6 +47,31 @@ const janjiTemuReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: action.payload,
+        list: [],
+      };
+
+    // 🔹 BOOKING REDUCER
+    case BOOK_JANJITEMU_REQUEST:
+      return {
+        ...state,
+        isBooking: true,
+        bookingError: null,
+      };
+
+    case BOOK_JANJITEMU_SUCCESS:
+      return {
+        ...state,
+        isBooking: false,
+        list: state.list.map((item) =>
+          item.id_janji === action.payload.id_janji ? action.payload : item
+        ),
+      };
+
+    case BOOK_JANJITEMU_FAILURE:
+      return {
+        ...state,
+        isBooking: false,
+        bookingError: action.payload,
       };
 
     default:

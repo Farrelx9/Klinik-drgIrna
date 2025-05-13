@@ -187,9 +187,9 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="container mx-auto px-4 pt-16">
-        <div className="max-w-4xl mx-auto py-5">
+        <div className="max-w-4xl mx-auto py-5 font-poppins">
           {/* Profile Header */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6 font-medium">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <div className="relative">
@@ -213,21 +213,21 @@ export default function Profile() {
                   />
                 </div>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 ">
                 <h2 className="text-2xl font-bold">
                   {user.pasien?.nama || "Nama belum diisi"}
                 </h2>
-                <p className="text-gray-600">{user.email}</p>
-                <div className="mt-2 space-y-1">
-                  <p className="text-gray-600">
+                <p className="text-gray-600 text-sm">{user.email}</p>
+                <div className="mt-2 space-y-1 text-sm">
+                  <p className="text-gray-600 font-semibold">
                     <span className="font-medium">No. Telepon:</span>{" "}
                     {user.pasien?.noTelp || "-"}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 font-semibold">
                     <span className="font-medium">Alamat:</span>{" "}
                     {user.pasien?.alamat || "-"}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 font-semibold">
                     <span className="font-medium">Tanggal Lahir:</span>{" "}
                     {user.pasien?.tanggal_lahir
                       ? new Date(user.pasien.tanggal_lahir).toLocaleDateString(
@@ -235,9 +235,9 @@ export default function Profile() {
                         )
                       : "-"}
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 font-semibold">
                     <span className="font-medium">Jenis Kelamin:</span>{" "}
-                    {user.pasien?.jenis_kelamin || "-"}
+                    {user.pasien?.jenis_kelamin || "-"}{" "}
                   </p>
                 </div>
               </div>

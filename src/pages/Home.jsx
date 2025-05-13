@@ -1,19 +1,18 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import drgIrna from "../assets/images/drg irna.png";
-import { useNavigate } from "react-router-dom";
-
+import klinik from "../assets/images/klinik.jpg";
+import ServiceCard from "../components/ServiceCard";
+import { MessageSquareText, CalendarClock, ClipboardPlus } from "lucide-react";
 export default function Beranda() {
-  const navigate = useNavigate();
-
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center text-gray-900 font-semibold font-poppins">
+      <div className="min-h-screen bg-gray-100 font-poppins font-semibold text-gray-900">
         {/* Hero Section */}
-        <div className="w-full py-10 bg-gradient-to-b from-[#1B56FD] to-[#1B56FD]/80 text-white">
-          <div className="container mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between z-10">
+        <div className="w-full bg-gradient-to-b from-[#1B56FD] to-[#1B56FD]/80 text-white py-10">
+          <div className="container mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between">
             <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
               <h1 className="text-2xl md:text-4xl mb-4">
                 Selamat Datang di Klinik drg. Irna
@@ -21,9 +20,15 @@ export default function Beranda() {
               <p className="text-xl mb-6">
                 Perawatan terbaik untuk kesehatan gigi dan mulut Anda
               </p>
-              <button className="bg-white text-[#1B56FD] px-6 py-2 rounded-full shadow-md hover:bg-gray-200 transition">
-                Buat Janji Sekarang
-              </button>
+              <a
+                href="https://wa.me/6282135920275?text=Halo%20Klinik%20drg.%20Irna%2C%20saya%20ingin%20konsultasi"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <button className="bg-white text-[#1B56FD] px-6 py-2 rounded-full shadow-md hover:bg-gray-200 transition">
+                  Hubungi Kami!
+                </button>
+              </a>
             </div>
             <div className="md:w-1/2 flex justify-center">
               <img
@@ -35,86 +40,114 @@ export default function Beranda() {
           </div>
         </div>
 
+        {/* New Section: Solusi Kesehatan di Tanganmu */}
+        <div className="w-full bg-[#F8F5E9] py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD] mb-12 text-center">
+              Solusi Kesehatan di Tanganmu
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Chat dengan Dokter */}
+              <ServiceCard
+                title="Chat dengan Dokter"
+                description="Konsultasi langsung dengan lebih dari 50 spesialis 24/7"
+                icon={<MessageSquareText size={32} />}
+                link="/konsultasi"
+              />
+
+              {/* Janji Temu */}
+              <ServiceCard
+                title="Janji Temu"
+                description="Atur jadwal konsultasi dokter secara mudah dan cepat"
+                icon={<CalendarClock size={32} />}
+                link="/list-jadwal"
+              />
+
+              {/* Pengajuan Rekam Medis */}
+              <ServiceCard
+                title="Pengajuan Rekam Medis"
+                description="Ajukan permohonan rekam medis untuk keperluan Anda"
+                icon={<ClipboardPlus size={32} />}
+                link="/pengajuan-rekam-medis"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Why Choose Us Section */}
         <div className="w-full py-16 bg-white shadow-[0_0_15px_rgba(0,0,0,0.1)]">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD] mb-12 text-center">
-              Why You Should Choose Our Dental Service?
+              Mengapa Memilih Layanan Kami?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {/* Affordable Price */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Feature Cards */}
               <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-center mb-4">
                   <div className="text-[#1B56FD] text-3xl">💰</div>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-3">
-                  Affordable Price
+                  Harga Terjangkau
                 </h3>
                 <p className="text-gray-600 text-center">
-                  The cost of dental care is reasonable and manageable within a
-                  person's budget.
+                  Biaya perawatan gigi sangat terjangkau dan sesuai dengan
+                  anggaran Anda.
                 </p>
               </div>
-
-              {/* Professional Dentist */}
               <div className="bg-[#1B56FD] p-6 rounded-lg shadow-lg text-white hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-center mb-4">
                   <div className="text-white text-3xl">👨‍⚕️</div>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-3">
-                  Professional Dentist
+                  Dokter Gigi Profesional
                 </h3>
                 <p className="text-white/90 text-center">
-                  The team include dentists, dental hygienists, dental
-                  assistants, and administrative staff who work together.
+                  Tim kami terdiri dari dokter gigi, perawat gigi, asisten, dan
+                  staf administrasi yang bekerja bersama.
                 </p>
               </div>
-
-              {/* Satisfactory Service */}
               <div className="bg-[#1B56FD] p-6 rounded-lg shadow-lg text-white hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-center mb-4">
                   <div className="text-white text-3xl">⭐</div>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-3">
-                  Satisfactory Service
+                  Pelayanan Berkualitas
                 </h3>
                 <p className="text-white/90 text-center">
-                  The patient receives quality dental care that meets or exceeds
-                  their expectations.
+                  Pasien menerima perawatan gigi berkualitas yang memenuhi atau
+                  melampaui harapan mereka.
                 </p>
               </div>
-
-              {/* Reservation Convenience */}
               <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-center mb-4">
                   <div className="text-[#1B56FD] text-3xl">📅</div>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-3">
-                  Reservation Convenience
+                  Kemudahan Reservasi
                 </h3>
                 <p className="text-gray-600 text-center">
-                  We are happy to advise you on the basis of a project or as
-                  part of a permanent arrangement.
+                  Kami siap memberikan saran baik secara proyek maupun kerja
+                  sama tetap.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Informasi Layanan */}
-        <div className="w-full bg-white py-16">
-          <div className="container mx-auto px-6 p-16 rounded-xl bg-[#F8F5E9] max-w-[85rem]">
+        {/* Services Section */}
+        <div className="w-full bg-[#F8F5E9] py-16">
+          <div className="container mx-auto px-4 p-16 rounded-xl max-w-5xl bg-transparent">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD]">
-                What Service We Offer
+                Layanan Yang Kami Tawarkan
               </h2>
               <p className="text-gray-600 mt-2">
-                Our experienced team is dedicated to providing high-quality
-                services and personalized care to each of our clients
+                Tim kami yang berpengalaman berkomitmen memberikan layanan
+                terbaik dan perawatan personal untuk setiap pasien.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Service 1 */}
+              {/* Service Cards */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -132,14 +165,13 @@ export default function Beranda() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Teeth Checkup</h3>
+                <h3 className="text-xl font-semibold mb-3">Pemeriksaan Gigi</h3>
                 <p className="text-gray-600">
-                  A routine dental examination that is typically performed by a
-                  dentist or dental hygienist.
+                  Pemeriksaan rutin yang biasanya dilakukan oleh dokter gigi
+                  atau perawat gigi.
                 </p>
               </div>
 
-              {/* Service 2 */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -157,14 +189,13 @@ export default function Beranda() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Teeth Whitening</h3>
+                <h3 className="text-xl font-semibold mb-3">Pemutihan Gigi</h3>
                 <p className="text-gray-600">
-                  Dental procedure that aims to lighten the color of teeth and
-                  remove stains and discolorations.
+                  Proses perbaikan gigi yang bertujuan mencerahkan warna gigi
+                  dan menghilangkan noda.
                 </p>
               </div>
 
-              {/* Service 3 */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -182,14 +213,13 @@ export default function Beranda() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Dental Braces</h3>
+                <h3 className="text-xl font-semibold mb-3">Kawat Gigi</h3>
                 <p className="text-gray-600">
-                  Orthodontic treatment that is used to straighten teeth and
-                  correct bite issues.
+                  Perawatan ortodontik untuk meluruskan gigi dan memperbaiki
+                  gigitan.
                 </p>
               </div>
 
-              {/* Service 4 */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -207,13 +237,12 @@ export default function Beranda() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Teeth Implants</h3>
+                <h3 className="text-xl font-semibold mb-3">Implantasi Gigi</h3>
                 <p className="text-gray-600">
-                  Dental restoration used to replace missing or damaged teeth.
+                  Restorasi gigi untuk menggantikan gigi yang hilang atau rusak.
                 </p>
               </div>
 
-              {/* Service 5 */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -231,14 +260,13 @@ export default function Beranda() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Dental Filling</h3>
+                <h3 className="text-xl font-semibold mb-3">Penambalan Gigi</h3>
                 <p className="text-gray-600">
-                  Dental procedure that is used to repair a tooth that has been
-                  damaged by decay, cavities, or other types of damage.
+                  Proses perbaikan gigi yang rusak karena lubang atau kerusakan
+                  lainnya.
                 </p>
               </div>
 
-              {/* Service 6 */}
               <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="text-[#1B56FD] text-3xl mb-4">
                   <svg
@@ -257,20 +285,48 @@ export default function Beranda() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-3">
-                  Cosmetic Dentistry
+                  Kedokteran Gigi Estetika
                 </h3>
                 <p className="text-gray-600">
-                  Dental procedures that are designed to improve the appearance
-                  of a person's teeth, gums, and overall smile.
+                  Prosedur untuk meningkatkan tampilan gigi, gusi, dan senyuman
+                  Anda.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Call to Action */}
+        {/* About Us Section */}
+        <div className="w-full bg-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+              <div className="md:w-1/2 flex justify-center">
+                <img
+                  src={klinik}
+                  alt="Tentang Klinik drg. Irna"
+                  className="rounded-full w-[400px] h-[400px] object-cover shadow-xl border-4 border-[#1B56FD]"
+                />
+              </div>
+              <div className="md:w-1/2">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#1B56FD] mb-6 text-center md:text-left">
+                  Tentang Kami
+                </h2>
+                <p className="text-gray-700 leading-relaxed text-center md:text-left">
+                  Klinik drg. Irna adalah klinik gigi profesional yang
+                  berkomitmen untuk memberikan layanan terbaik dalam menjaga
+                  kesehatan gigi dan mulut Anda. Dengan tim dokter gigi yang
+                  berpengalaman, fasilitas lengkap, dan lingkungan yang nyaman,
+                  kami hadir sebagai solusi terpercaya untuk semua kebutuhan
+                  perawatan gigi Anda dan keluarga.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Section */}
         <div className="w-full bg-[#1B56FD] text-white text-center py-10">
-          <div className="container mx-auto px-6 p-16 max-w-[85rem]">
+          <div className="container mx-auto px-6">
             <h2 className="text-2xl">
               Kesehatan gigi Anda adalah prioritas kami
             </h2>

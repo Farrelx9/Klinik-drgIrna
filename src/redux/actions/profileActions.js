@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "../config/apiConfig";
 import {
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
@@ -11,16 +11,12 @@ export const updateProfile = (profileData) => {
     dispatch({ type: UPDATE_PROFILE_REQUEST });
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        "http://localhost:3000/api/auth/profile",
-        profileData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.put("/auth/profile", profileData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 200) {
         const data = response.data;

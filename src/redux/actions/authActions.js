@@ -1,7 +1,6 @@
-import axios from "axios";
-import apiClient from "/src/assets/config/apiConfig";
+import apiClient from "../config/apiConfig";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // 🔥 Tambahkan ini di paling atas
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   LOGIN_REQUEST,
@@ -113,35 +112,37 @@ export const login = (email, password, navigate) => {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log("Login response:", data);
 
         if (data.token) {
           localStorage.setItem("token", data.token);
-          // Setelah simpan token, fetch profile
+
           const profileResponse = await apiClient.get("/auth/profile", {
             headers: { Authorization: `Bearer ${data.token}` },
           });
+
           localStorage.setItem(
             "user",
             JSON.stringify(profileResponse.data.user)
           );
+
           dispatch(
             loginSuccess({ user: profileResponse.data.user, token: data.token })
           );
+          return true;
         }
-        return true; // Return true to indicate successful login
-      } else {
-        dispatch(loginFailure("Login failed"));
-        return false;
       }
+
+      dispatch(loginFailure("Login gagal"));
+      return false;
     } catch (error) {
-      console.error("Login error:", error.response?.data);
-      let errorMessage = "An error occurred during login";
+      let errorMessage = "Gagal login. Silakan coba lagi.";
 
       if (error.response?.data?.message) {
+        // Ambil pesan dari backend
         errorMessage = error.response.data.message;
       }
-      // Tangani error 401
+
+      // Handle 401 Unauthorized
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -160,11 +161,9 @@ export const register = (userData) => {
     dispatch(registerRequest());
     try {
       console.log("Sending registration data:", userData);
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/register",
-        userData,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await apiClient.post("/auth/register", userData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.status === 201) {
         const data = response.data;
@@ -209,8 +208,8 @@ export const verifyOtp = (userId, otp) => {
       const { email } = JSON.parse(userData);
       console.log("Sending OTP verification data:", { email, kode_otp: otp });
 
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/verifyOtp",
+      const response = await apiClient.post(
+        "/auth/verifyOtp",
         {
           email,
           kode_otp: otp,
@@ -264,8 +263,8 @@ export const resendOtp = (purpose) => {
       const { email } = JSON.parse(userData);
       console.log("Sending resend OTP request for:", email);
 
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/sendOtp",
+      const response = await apiClient.post(
+        "/auth/sendOtp",
         { email, purpose }, // kirim purpose jika diberikan
         { headers: { "Content-Type": "application/json" } }
       );
@@ -298,15 +297,12 @@ export const fetchProfile = (navigate) => {
     dispatch(fetchProfileRequest());
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/api/auth/profile",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get("/auth/profile", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 200) {
         const data = response.data;
@@ -315,7 +311,7 @@ export const fetchProfile = (navigate) => {
         dispatch(fetchProfileFailure("Failed to fetch profile"));
       }
     } catch (error) {
-      let errorMessage = "An error occurred while fetching profile";
+      let errorMessage = "Token kadaluwarsa atau tidak valid!";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
@@ -335,8 +331,8 @@ export const requestChangePasswordOtp = (oldPassword) => {
     dispatch({ type: REQUEST_CHANGE_PASSWORD_OTP_REQUEST });
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/requestChangePasswordOtp",
+      const response = await apiClient.post(
+        "/auth/requestChangePasswordOtp",
         { oldPassword },
         {
           headers: {
@@ -366,8 +362,8 @@ export const changePassword = (kode_otp, newPassword, oldPassword) => {
     dispatch({ type: CHANGE_PASSWORD_REQUEST });
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/changePassword",
+      const response = await apiClient.post(
+        "/auth/changePassword",
         { kode_otp, newPassword, oldPassword },
         {
           headers: {

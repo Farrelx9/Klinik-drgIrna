@@ -38,7 +38,7 @@ export default function Register() {
     <div className="flex h-screen font-poppins">
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/login")}
           className="absolute top-8 left-8 flex items-center text-gray-600 hover:text-gray-900"
         >
           <FaArrowLeft className="mr-2" />
@@ -49,7 +49,7 @@ export default function Register() {
           className="w-60 h-auto mb-4 object-contain"
           style={{ maxWidth: "100%", maxHeight: "100px" }}
         />
-        <h1 className="text-2xl font-bold mb-4">Create an account</h1>
+        <h1 className="text-2xl font-bold mb-4">Buat Akun</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="w-full">
           <input
@@ -79,7 +79,7 @@ export default function Register() {
           </button>
         </form>
         <div className="mt-4">
-          <span>Already have an account? </span>
+          <span>Sudah Punya Akun? </span>
           <a href="/login" className="text-blue-500">
             Sign in
           </a>

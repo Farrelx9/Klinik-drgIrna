@@ -61,9 +61,8 @@ export default function Footer() {
               Jam Operasional
             </h3>
             <div className="space-y-2 text-white/80">
-              <p>Senin - Jumat: 09:00 - 20:00</p>
-              <p>Sabtu: 09:00 - 17:00</p>
-              <p>Minggu: Tutup</p>
+              <p>Senin - Jumat: 16:00 - 20:00</p>
+              <p>Sabtu - Minggu: Tutup</p>
             </div>
           </div>
 

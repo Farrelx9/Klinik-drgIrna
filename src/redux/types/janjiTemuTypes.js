@@ -1,4 +1,7 @@
-// Janji Temu Types
-export const JANJITEMU_REQUEST = "janjitemu/request";
-export const JANJITEMU_SUCCESS = "janjitemu/success";
-export const JANJITEMU_FAILURE = "janjitemu/failure";
+export const JANJITEMU_REQUEST = "JANJITEMU_REQUEST";
+export const JANJITEMU_SUCCESS = "JANJITEMU_SUCCESS";
+export const JANJITEMU_FAILURE = "JANJITEMU_FAILURE";
+
+export const BOOK_JANJITEMU_REQUEST = "BOOK_JANJITEMU_REQUEST";
+export const BOOK_JANJITEMU_SUCCESS = "BOOK_JANJITEMU_SUCCESS";
+export const BOOK_JANJITEMU_FAILURE = "BOOK_JANJITEMU_FAILURE";

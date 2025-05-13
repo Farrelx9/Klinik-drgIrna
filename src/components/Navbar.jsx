@@ -60,6 +60,9 @@ export default function Navbar() {
       navigate("/login");
     }
   };
+  const handleNotification = () => {
+    navigate("/notifikasi");
+  };
 
   const handleLogout = () => {
     setShowLogoutModal(true);
@@ -123,7 +126,10 @@ export default function Navbar() {
                 </a>
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-4">
-                    <button className="text-gray-700 hover:text-[#1B56FD] transition-colors">
+                    <button
+                      onClick={handleNotification}
+                      className="text-gray-700 hover:text-[#1B56FD] transition-colors"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-6 w-6"
@@ -224,7 +230,10 @@ export default function Navbar() {
                 </a>
                 {isAuthenticated ? (
                   <div className="space-y-4">
-                    <button className="flex items-center space-x-2 text-gray-700 hover:text-[#1B56FD] transition-colors">
+                    <button
+                      onClick={handleNotification}
+                      className="flex items-center space-x-2 text-gray-700 hover:text-[#1B56FD] transition-colors"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
