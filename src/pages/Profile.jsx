@@ -64,6 +64,13 @@ export default function Profile() {
   }, [dispatch, navigate]);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     if (user) {
       setEditFormData({
         nama: user.pasien?.nama || "",

@@ -16,7 +16,6 @@ const initialState = {
 };
 
 const notificationReducer = (state = initialState, action) => {
-  console.log("Redux State:", state); // Lihat seluruh isi store
   switch (action.type) {
     case FETCH_NOTIFICATIONS_REQUEST:
     case MARK_AS_READ_REQUEST:

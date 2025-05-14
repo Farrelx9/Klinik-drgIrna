@@ -1,7 +1,5 @@
-// config/axiosConfig.js
-
 import axios from "axios";
-import store from "../store";
+import store from "../../store";
 
 const apiClient = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -23,21 +21,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    console.log("Interceptor triggered for error:", error);
 
-      // Dispatch error ke Redux hanya sekali
+    if (error.response?.status === 401) {
+      console.log("401 Unauthorized detected in interceptor");
+
+      localStorage.setItem("authError", "Token tidak valid atau kadaluarsa");
       store.dispatch(loginFailure("Token tidak valid atau kadaluarsa"));
 
-      // Simpan error ke localStorage agar bisa dibaca di halaman login
-      localStorage.setItem("authError", "Token tidak valid atau kadaluarsa");
-
-      // Redirect via event custom (bukan window.location)
-      const event = new CustomEvent("unauthorized", {
-        detail: { message: "Token tidak valid atau kadaluarsa" },
-      });
-      window.dispatchEvent(event);
+      window.dispatchEvent(new CustomEvent("unauthorized"));
     }
 
     return Promise.reject(error);

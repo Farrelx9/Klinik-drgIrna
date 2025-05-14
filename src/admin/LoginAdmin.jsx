@@ -1,61 +1,82 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../redux/actions/authActions";
+import { loginRole } from "../redux-admin/action/authAdminActions";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Assets
-import BG1 from "../images/dental2.jpg";
-import LOGO from "../images/Logoklinik.png";
+import BG1 from "../assets/images/dental2.jpg";
+import LOGO from "../assets/images/Logoklinik.png";
 import { FaArrowLeft } from "react-icons/fa";
 
-export default function Login() {
+export default function LoginAdmin() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { loading, error } = useSelector((state) => state.auth);
-
+  const { loadingAdmin, errorAdmin } = useSelector((state) => state.authAdmin); // Ambil dari Redux
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tangkap unauthorized event
   useEffect(() => {
     const handleUnauthorized = () => {
-      const authError = localStorage.getItem("authError");
+      const authError = localStorage.getItem("authAdminError");
       if (authError) {
         toast.error(authError, {
           autoClose: 3000,
           onClose: () => {
             setTimeout(() => {
-              navigate("/login", { replace: true });
+              navigate("/login-admin", { replace: true });
             }, 500);
           },
         });
 
-        localStorage.removeItem("authError");
+        localStorage.removeItem("authAdminError");
       }
     };
 
-    window.addEventListener("unauthorized", handleUnauthorized);
-    return () => window.removeEventListener("unauthorized", handleUnauthorized);
+    window.addEventListener("unauthorizedAdmin", handleUnauthorized);
+    return () =>
+      window.removeEventListener("unauthorizedAdmin", handleUnauthorized);
   }, [navigate]);
 
   // Tampilkan toast dari localStorage
   useEffect(() => {
-    const authError = localStorage.getItem("authError");
+    const authError = localStorage.getItem("authAdminError");
     if (authError) {
       toast.error(authError, { autoClose: 3000 });
-      localStorage.removeItem("authError");
+      localStorage.removeItem("authAdminError");
     }
   }, []);
 
   // Tampilkan error dari Redux
   useEffect(() => {
-    if (error) {
-      toast.error(error, { autoClose: 3000 });
+    if (errorAdmin) {
+      toast.error(errorAdmin, { autoClose: 3000 });
     }
-  }, [error]);
+  }, [errorAdmin]);
+
+  // Redirect setelah login sukses
+  useEffect(() => {
+    console.log("State Auth:", {
+      loadingAdmin,
+      errorAdmin,
+      isSubmitting,
+    });
+
+    if (
+      loadingAdmin === false &&
+      !errorAdmin &&
+      formData.email &&
+      isSubmitting
+    ) {
+      toast.success("Login admin berhasil!", { autoClose: 3000 });
+      setTimeout(() => {
+        navigate("/dashboardadmin");
+      }, 1500);
+    }
+  }, [loadingAdmin, errorAdmin, isSubmitting, navigate, formData.email]);
 
   const handleChange = (e) => {
     setFormData({
@@ -72,13 +93,11 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const success = await dispatch(login(formData.email, formData.password));
-      if (success) {
-        toast.success("Login berhasil!", { autoClose: 3000 });
-        setTimeout(() => navigate("/"), 1500);
-      }
+      await dispatch(loginRole(formData.email, formData.password));
     } catch (err) {
-      toast.error("Email atau password salah.", { autoClose: 3000 });
+      toast.error(err || "Email atau password admin salah.", {
+        autoClose: 3000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -101,15 +120,15 @@ export default function Login() {
           src={LOGO}
           className="w-60 h-auto mb-4 object-contain"
           style={{ maxWidth: "100%", maxHeight: "100px" }}
-          alt="Logo"
+          alt="Logo Admin"
         />
 
         {/* Judul */}
         <h1 className="text-2xl font-semibold mb-4 text-blue-500">
-          Selamat Datang!
+          Admin Login
         </h1>
 
-        {/* Form Login */}
+        {/* Form Login Admin */}
         <form onSubmit={handleSubmit} className="w-full">
           <input
             type="email"
@@ -117,7 +136,7 @@ export default function Login() {
             value={formData.email}
             onChange={handleChange}
             className="border p-2 mb-4 w-full"
-            placeholder="Email address"
+            placeholder="Email admin"
             required
           />
           <input
@@ -133,37 +152,13 @@ export default function Login() {
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded w-full mb-4"
-            disabled={loading || isSubmitting}
+            disabled={loadingAdmin || isSubmitting}
           >
-            {loading || isSubmitting ? "Signing in..." : "Sign in"}
+            {loadingAdmin || isSubmitting
+              ? "Signing in..."
+              : "Sign in as Admin"}
           </button>
         </form>
-
-        {/* Google Sign In  */}
-        <button className="bg-white border border-blue-500 text-blue-500 p-2 rounded w-full mb-4">
-          Sign in with Google
-        </button>
-
-        {/* Link Forgot Password */}
-        <div>
-          <a
-            onClick={() => navigate("/forgotPassword")}
-            className="text-blue-500 cursor-pointer"
-          >
-            Forgot password?
-          </a>
-        </div>
-
-        {/* Daftar Akun */}
-        <div className="mt-4">
-          <span>Belum Punya Akun? </span>
-          <a
-            onClick={() => navigate("/register")}
-            className="text-blue-500 cursor-pointer"
-          >
-            Sign up
-          </a>
-        </div>
       </div>
 
       {/* Background Image */}
