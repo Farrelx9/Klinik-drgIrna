@@ -1,4 +1,4 @@
-import apiClient from "../config/apiConfig";
+import apiClient from "../../config/apiConfig";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

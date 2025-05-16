@@ -1,16 +1,15 @@
 "use client";
 import {
   Calendar,
+  CalendarDays,
   ClipboardList,
   DollarSign,
-  FileText,
   LayoutDashboard,
-  LogIn,
   Menu,
   MessageSquare,
-  Settings,
+  ScrollText,
+  StarIcon,
   SmileIcon as Tooth,
-  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -142,39 +141,31 @@ export default function Sidebar({
               className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
               onClick={(e) => e.preventDefault()}
             >
-              <FileText className="h-5 w-5" />
-              {isSidebarOpen && <span>Laporan</span>}
+              <CalendarDays className="h-5 w-5" />
+              {isSidebarOpen && <span>Jadwal Dokter</span>}
+            </a>
+            <a
+              href="#"
+              className={`flex items-center space-x-2 p-2 rounded-md ${
+                activeTab === "jenisTindakan"
+                  ? "bg-blue-500 text-white"
+                  : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange("jenisTindakan");
+              }}
+            >
+              <ScrollText className="h-5 w-5" />
+              {isSidebarOpen && <span>Jenis Tindakan</span>}
             </a>
             <a
               href="#"
               className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
               onClick={(e) => e.preventDefault()}
             >
-              <Settings className="h-5 w-5" />
-              {isSidebarOpen && <span>Pengaturan</span>}
-            </a>
-          </nav>
-        </div>
-        <div className="mb-6">
-          <div className="text-xs font-semibold text-gray-400 mb-2">
-            {isSidebarOpen ? "AKUN" : ""}
-          </div>
-          <nav className="space-y-1">
-            <a
-              href="#"
-              className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-              onClick={(e) => e.preventDefault()}
-            >
-              <LogIn className="h-5 w-5" />
-              {isSidebarOpen && <span>Login</span>}
-            </a>
-            <a
-              href="#"
-              className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-              onClick={(e) => e.preventDefault()}
-            >
-              <UserPlus className="h-5 w-5" />
-              {isSidebarOpen && <span>Register</span>}
+              <StarIcon className="h-5 w-5" />
+              {isSidebarOpen && <span>Review</span>}
             </a>
           </nav>
         </div>

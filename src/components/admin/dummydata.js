@@ -5,28 +5,28 @@ export const dummyUsers = [
     name: "Budi Santoso",
     email: "budi@example.com",
     phone: "081234567890",
-    lastVisit: "15 Mei 2024",
+    Kelamin: "Laki-Laki",
   },
   {
     id: 2,
     name: "Siti Rahayu",
     email: "siti@example.com",
     phone: "081234567891",
-    lastVisit: "10 Mei 2024",
+    Kelamin: "Perempuan",
   },
   {
     id: 3,
     name: "Ahmad Fauzi",
     email: "ahmad@example.com",
     phone: "081234567892",
-    lastVisit: "5 Mei 2024",
+    Kelamin: "Laki-Laki",
   },
   {
     id: 4,
     name: "Dewi Lestari",
     email: "dewi@example.com",
     phone: "081234567893",
-    lastVisit: "1 Mei 2024",
+    Kelamin: "Perempuan",
   },
 ];
 

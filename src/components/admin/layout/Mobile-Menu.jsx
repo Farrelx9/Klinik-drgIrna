@@ -3,13 +3,9 @@
 import {
   Calendar,
   ClipboardList,
-  DollarSign,
-  FileText,
   LayoutDashboard,
-  LogIn,
   MessageSquare,
-  Settings,
-  UserPlus,
+  ScrollText,
   Users,
 } from "lucide-react";
 
@@ -105,51 +101,22 @@ export default function MobileMenu({ activeTab, handleTabChange }) {
         <nav className="space-y-1">
           <a
             href="#"
-            className="flex items-center space-x-2 p-3 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            onClick={(e) => e.preventDefault()}
+            className={`flex items-center space-x-2 p-3 rounded-md ${
+              activeTab === "jenisTindakan"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleTabChange("jenisTindakan");
+            }}
           >
-            <DollarSign className="h-5 w-5" />
-            <span>Pembayaran</span>
-          </a>
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-3 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            onClick={(e) => e.preventDefault()}
-          >
-            <FileText className="h-5 w-5" />
-            <span>Laporan</span>
-          </a>
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-3 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            onClick={(e) => e.preventDefault()}
-          >
-            <Settings className="h-5 w-5" />
-            <span>Pengaturan</span>
+            <ScrollText className="h-5 w-5" />
+            <span>Jenis Tindakan</span>
           </a>
         </nav>
       </div>
-      <div className="mb-6">
-        <div className="text-xs font-semibold text-gray-400 mb-2">AKUN</div>
-        <nav className="space-y-1">
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-3 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            onClick={(e) => e.preventDefault()}
-          >
-            <LogIn className="h-5 w-5" />
-            <span>Login</span>
-          </a>
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-3 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            onClick={(e) => e.preventDefault()}
-          >
-            <UserPlus className="h-5 w-5" />
-            <span>Register</span>
-          </a>
-        </nav>
-      </div>
+      <div className="mb-6"></div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // src/store/notification/actions.js
-import apiClient from "../config/apiConfig"; // Pastikan ini sesuai path kamu
+import apiClient from "../../config/apiConfig";
 import {
   FETCH_NOTIFICATIONS_REQUEST,
   FETCH_NOTIFICATIONS_SUCCESS,

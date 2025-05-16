@@ -1,4 +1,4 @@
-import apiClient from "../config/apiConfig";
+import apiClient from "../../config/apiConfig";
 import {
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
