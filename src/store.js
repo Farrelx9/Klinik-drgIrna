@@ -7,6 +7,7 @@ import notificationReducer from "./redux/reducers/notificationReducer";
 import authAdminReducer from "./redux-admin/reducer/authAdminReducers";
 import userAdminReducer from "./redux-admin/reducer/userAdminSlice";
 import appointmentReducer from "./redux-admin/reducer/appointmentReducer";
+import jenisTindakanReducer from "./redux-admin/reducer/jenisTindakanReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   authAdmin: authAdminReducer,
   userAdmin: userAdminReducer,
   appointment: appointmentReducer,
+  jenisTindakan: jenisTindakanReducer,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));

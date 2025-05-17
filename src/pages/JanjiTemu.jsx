@@ -5,7 +5,7 @@ import { fetchJanjiTemu } from "../redux/actions/janjiTemuActions";
 import Navbar from "../components/Navbar";
 
 // Untuk toast notification
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const JanjiTemu = () => {
@@ -128,22 +128,6 @@ const JanjiTemu = () => {
   return (
     <div>
       <Navbar />
-
-      {/* 🔥 Pastikan ToastContainer SELALU dirender */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        closeButton
-      />
-
       <div className="container mx-auto p-6 py-20">
         {/* Header dengan Judul dan Input Filter Tanggal */}
         <div className="flex justify-between items-center mb-6">

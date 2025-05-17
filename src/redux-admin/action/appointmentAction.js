@@ -94,7 +94,7 @@ export const updatePaymentMethod = (id, paymentMethod) => async (dispatch) => {
   dispatch({ type: UPDATE_PAYMENT_REQUEST });
 
   try {
-    const response = await apiClient.put(`/janjiTemu/update-payment/${id}`, {
+    const response = await apiClient.put(`/janjiTemu/updatePayment/${id}`, {
       pembayaran: paymentMethod,
     });
 
