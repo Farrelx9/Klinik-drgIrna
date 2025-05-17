@@ -125,7 +125,11 @@ export default function AppointmentTab() {
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(appointment.tanggal_waktu).toLocaleTimeString(
-                      "id-ID"
+                      "id-ID",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
                     )}
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
