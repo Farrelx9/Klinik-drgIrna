@@ -47,8 +47,7 @@ const JanjiTemu = () => {
   const filteredList = filterDate
     ? list.filter(
         (item) =>
-          new Date(item.tanggal_waktu).toISOString().split("T")[0] ===
-          filterDate
+          new Date(item.tanggal_waktu).toISOString().split("T")[0] === filterDate
       )
     : list;
 
@@ -164,18 +163,6 @@ const JanjiTemu = () => {
                     month: "long",
                     year: "numeric",
                   });
-                  toast.info(
-                    `Menampilkan jadwal pada ${selectedDate}. Klik "Reset" untuk melihat semua jadwal.`,
-                    {
-                      autoClose: 3000,
-                      position: "top-right",
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      closeButton: true,
-                      pauseOnHover: true,
-                      theme: "colored",
-                    }
-                  );
                 }
               }}
               min={minDate} // Mulai dari besok

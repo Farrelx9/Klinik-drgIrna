@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
 // 💡 Tambahkan ToastContainer
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 const formatDate = (isoString) => {
   const date = new Date(isoString);
@@ -143,19 +143,6 @@ const JadwalCard = ({ appointment, onSelect, isSelected }) => {
           </div>
         </div>
       )}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        closeButton
-      />
     </div>
   );
 };

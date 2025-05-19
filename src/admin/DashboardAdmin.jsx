@@ -123,6 +123,9 @@ export default function DashboardAdmin() {
 
           {/* Jenis Tindakan Content */}
           {activeTab === "jenisTindakan" && <JenisTindakan />}
+
+          {/* Jenis Tindakan Content */}
+          {activeTab === "medical" && <MedicalTab />}
         </main>
       </div>
     </div>

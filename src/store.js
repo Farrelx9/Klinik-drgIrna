@@ -5,9 +5,11 @@ import authReducer from "./redux/reducers/authReducer";
 import janjiTemuReducer from "./redux/reducers/janjiTemuReducers";
 import notificationReducer from "./redux/reducers/notificationReducer";
 import authAdminReducer from "./redux-admin/reducer/authAdminReducers";
-import userAdminReducer from "./redux-admin/reducer/userAdminSlice";
+import userAdminReducer from "./redux-admin/reducer/userAdminReducer";
 import appointmentReducer from "./redux-admin/reducer/appointmentReducer";
 import jenisTindakanReducer from "./redux-admin/reducer/jenisTindakanReducer";
+import rekamMedisReducer from "./redux-admin/reducer/rekamMedisReducer";
+import pasienReducer from "./redux-admin/reducer/pasienReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -17,6 +19,8 @@ const rootReducer = combineReducers({
   userAdmin: userAdminReducer,
   appointment: appointmentReducer,
   jenisTindakan: jenisTindakanReducer,
+  rekamMedis: rekamMedisReducer,
+  pasien: pasienReducer,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));

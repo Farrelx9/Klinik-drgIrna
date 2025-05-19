@@ -133,14 +133,6 @@ export default function Sidebar({
               className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
               onClick={(e) => e.preventDefault()}
             >
-              <DollarSign className="h-5 w-5" />
-              {isSidebarOpen && <span>Pembayaran</span>}
-            </a>
-            <a
-              href="#"
-              className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-              onClick={(e) => e.preventDefault()}
-            >
               <CalendarDays className="h-5 w-5" />
               {isSidebarOpen && <span>Jadwal Dokter</span>}
             </a>

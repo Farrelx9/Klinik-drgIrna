@@ -33,7 +33,6 @@ export const loginRole = (email, password) => async (dispatch) => {
     localStorage.setItem("token", token);
 
     dispatch(loginRoleSuccess({ token, role }));
-    console.log(res.data);
   } catch (err) {
     const errorMessage =
       err.response?.data?.message || err.message || "Login gagal";
