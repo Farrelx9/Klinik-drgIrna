@@ -11,6 +11,13 @@ export const CREATE_REKAM_MEDIS_FAILURE = "CREATE_REKAM_MEDIS_FAILURE";
 export const UPDATE_REKAM_MEDIS_SUCCESS = "UPDATE_REKAM_MEDIS_SUCCESS";
 export const DELETE_REKAM_MEDIS_SUCCESS = "DELETE_REKAM_MEDIS_SUCCESS";
 
+export const FETCH_REKAM_MEDIS_BY_PASIEN_REQUEST =
+  "FETCH_REKAM_MEDIS_BY_PASIEN_REQUEST";
+export const FETCH_REKAM_MEDIS_BY_PASIEN_SUCCESS =
+  "FETCH_REKAM_MEDIS_BY_PASIEN_SUCCESS";
+export const FETCH_REKAM_MEDIS_BY_PASIEN_FAILURE =
+  "FETCH_REKAM_MEDIS_BY_PASIEN_FAILURE";
+
 export const SET_REKAM_MEDIS_PAGE = "SET_REKAM_MEDIS_PAGE";
 
 // === Fetch All Rekam Medis ===
@@ -33,11 +40,11 @@ export const fetchRekamMedis =
         id_rekam_medis: record.id_rekam_medis,
         id_pasien: record.id_pasien,
 
-        // 🔹 Data pasien
-        nama_pasien: record.pasien?.nama || "-",
-        alamat_pasien: record.pasien?.alamat || "-",
-        jenis_kelamin_pasien: record.pasien?.jenis_kelamin || "-",
-        tanggal_lahir_pasien: record.pasien?.tanggal_lahir || null,
+        // 🔁 Gunakan field hasil mapping dari backend
+        nama_pasien: record.nama_pasien || "-",
+        alamat_pasien: record.alamat_pasien || "-",
+        jenis_kelamin_pasien: record.jenis_kelamin_pasien || "-",
+        tanggal_lahir_pasien: record.tanggal_lahir_pasien || null,
 
         // 🔹 Field rekam medis
         keluhan: record.keluhan,
@@ -79,11 +86,11 @@ export const createRekamMedis = (formData) => async (dispatch) => {
     dispatch({
       type: CREATE_REKAM_MEDIS_SUCCESS,
       payload: {
-        ...response.data, // asumsi response.data berisi semua field
-        nama_pasien: response.data.pasien?.nama || "-",
-        alamat_pasien: response.data.pasien?.alamat || "-",
-        jenis_kelamin_pasien: response.data.pasien?.jenis_kelamin || "-",
-        tanggal_lahir_pasien: response.data.pasien?.tanggal_lahir || null,
+        ...response.data,
+        nama_pasien: response.data.nama_pasien || "-",
+        alamat_pasien: response.data.alamat_pasien || "-",
+        jenis_kelamin_pasien: response.data.jenis_kelamin_pasien || "-",
+        tanggal_lahir_pasien: response.data.tanggal_lahir_pasien || null,
       },
     });
 
@@ -112,6 +119,36 @@ export const updateRekamMedis = (id, formData) => async (dispatch) => {
     ("Rekam medis berhasil diperbarui");
   } catch (error) {
     ("Gagal memperbarui rekam medis");
+  }
+};
+
+//rekam medis by id
+export const fetchRekamMedisByPatient = (id_pasien) => async (dispatch) => {
+  dispatch({ type: FETCH_REKAM_MEDIS_BY_PASIEN_REQUEST });
+
+  try {
+    const response = await apiClient.get(
+      `/rekamMedis/getByPasien/${id_pasien}`
+    );
+
+    // Pastikan format respons valid
+    if (!response.data || !Array.isArray(response.data)) {
+      throw new Error("Invalid response format");
+    }
+
+    dispatch({
+      type: FETCH_REKAM_MEDIS_BY_PASIEN_SUCCESS,
+      payload: response.data,
+    });
+
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: FETCH_REKAM_MEDIS_BY_PASIEN_FAILURE,
+      payload: error.message,
+    });
+    console.error("Gagal mengambil rekam medis pasien:", error);
+    return [];
   }
 };
 
