@@ -4,6 +4,7 @@ import * as rekamMedisActions from "../../../redux-admin/action/rekamMedisAction
 import * as pasienActions from "../../../redux-admin/action/pasienAction";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import FieldPasien from "./FieldPasien";
 
 export default function MedicalTab() {
   const dispatch = useDispatch();
@@ -39,11 +40,11 @@ export default function MedicalTab() {
   });
 
   const [searchPasienInModal, setSearchPasienInModal] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   // Load data saat mount
   useEffect(() => {
     dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, ""));
-    console.log(rekamMedisList);
     dispatch(pasienActions.fetchUser());
   }, [dispatch, currentPage]);
 
@@ -95,6 +96,19 @@ export default function MedicalTab() {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handlePatientClick = (record) => {
+    // Fetch or enrich patient details here if needed
+    const enrichedPatient = {
+      ...record,
+      pasien: { nama: record.nama_pasien || "-", email: "-" }, // Example enrichment
+    };
+    setSelectedPatient(enrichedPatient);
+  };
+  const handleBack = () => {
+    setSelectedPatient(null); // Reset selectedPatient untuk menutup detail pasien
+  };
+
   const handleEdit = (record) => {
     const rawDate = record.tanggal;
     const isValidDate = rawDate && !isNaN(new Date(rawDate).getTime());
@@ -160,7 +174,6 @@ export default function MedicalTab() {
         )}
 
         {/* Tabel Rekam Medis */}
-        {/* Tabel Rekam Medis */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -224,34 +237,38 @@ export default function MedicalTab() {
                     !isNaN(new Date(record.tanggal).getTime());
 
                   return (
-                    <tr key={record.id_rekam_medis}>
+                    <tr
+                      className="cursor-pointer hover:bg-gray-100"
+                      onClick={() => handlePatientClick(record)}
+                      key={record.id_rekam_medis}
+                    >
                       {/* ✅ Nama Pasien */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words font-semibold">
                         {record.nama_pasien || "-"}
                       </td>
 
                       {/* Keluhan */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                         {record.keluhan || "-"}
                       </td>
 
                       {/* Diagnosa */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                         {record.jenis_kelamin_pasien || "-"}
                       </td>
 
                       {/* Tindakan */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                         {record.alamat_pasien || "-"}
                       </td>
 
                       {/* Dokter */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                         {record.dokter || "-"}
                       </td>
 
                       {/* Tanggal */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                         {isValidDate
                           ? new Date(
                               record.tanggal_lahir_pasien
@@ -262,7 +279,10 @@ export default function MedicalTab() {
                       {/* Aksi */}
                       <td className="px-6 py-4 whitespace-nowrap text-center space-x-2">
                         <button
-                          onClick={() => handleDelete(record.id_rekam_medis)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click event
+                            handleDelete(record.id_rekam_medis);
+                          }}
                           className="text-red-500 hover:text-red-700"
                         >
                           Hapus
@@ -304,6 +324,14 @@ export default function MedicalTab() {
           </div>
         </div>
       </div>
+
+      {/* ✅ Display FieldPasien if a patient is selected */}
+      {selectedPatient && (
+        <div className="mt-4 bg-white rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold mb-2">Detail Pasien</h2>
+          <FieldPasien patient={selectedPatient} onBack={handleBack} />
+        </div>
+      )}
 
       {/* Modal Tambah Rekam Medis */}
       {showModal && (

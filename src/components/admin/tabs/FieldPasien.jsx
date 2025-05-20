@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as rekamMedisActions from "../../../redux-admin/action/rekamMedisAction";
 import { toast } from "react-toastify";
@@ -8,16 +8,16 @@ import jsPDF from "jspdf";
 
 export default function FieldPasien({ patient, onBack }) {
   const dispatch = useDispatch();
-  const pasienState = useSelector((state) => state.rekamMedis || {});
-  const { data: pasienList = [] } = pasienState;
 
-  // State untuk menyimpan rekam medis pasien
-  const [patientRecords, setPatientRecords] = useState([]);
+  // Ambil state dari Redux
+  const rekamMedisState = useSelector((state) => state.rekamMedis || {});
+  const { patientRecords: reduxPatientRecords = [] } = rekamMedisState;
+
+  // State lokal
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
 
-  // Form data
   const [formData, setFormData] = useState({
     id_pasien: patient.id_pasien || "",
     keluhan: "",
@@ -28,27 +28,32 @@ export default function FieldPasien({ patient, onBack }) {
     tanggal: new Date().toISOString().split("T")[0],
   });
 
-  // Fetch rekam medis untuk pasien ini
+  // Gunakan data dari Redux jika tersedia, fallback ke data pasien
+  const [patientRecords, setPatientRecords] = useState(
+    reduxPatientRecords.length > 0 ? reduxPatientRecords : [patient]
+  );
+
+  // Fetch riwayat rekam medis dari API
   useEffect(() => {
     const fetchPatientRecords = async () => {
       try {
         setLoading(true);
-        // Asumsikan ada API untuk mengambil rekam medis berdasarkan ID pasien
-        const response = await dispatch(
+
+        const records = await dispatch(
           rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
         );
 
-        // Jika tidak ada action khusus, bisa filter dari data yang ada
-        // const allRecords = await dispatch(rekamMedisActions.fetchRekamMedis(1, 100));
-        // const filteredRecords = allRecords.filter(record => record.id_pasien === patient.id_pasien);
-        // setPatientRecords(filteredRecords);
+        if (records && records.length > 0) {
+          setPatientRecords(records);
+        } else {
+          setPatientRecords([patient]); // fallback
+        }
 
-        // Untuk sementara, kita gunakan data pasien yang dikirim sebagai array
-        setPatientRecords([patient]);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching patient records:", error);
-        toast.error("Gagal mengambil data rekam medis pasien");
+        console.error("Gagal mengambil riwayat rekam medis:", error);
+        toast.warn("Menggunakan data lokal karena gagal ambil dari server");
+        setPatientRecords([patient]);
         setLoading(false);
       }
     };
@@ -67,7 +72,6 @@ export default function FieldPasien({ patient, onBack }) {
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.diagnosa || !formData.tindakan) {
       toast.error("Diagnosa dan Tindakan harus diisi");
       return;
@@ -89,12 +93,11 @@ export default function FieldPasien({ patient, onBack }) {
         toast.success("Rekam medis baru berhasil ditambahkan");
       }
 
-      // Refresh data
+      // Refresh riwayat rekam medis
       const updatedRecords = await dispatch(
         rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
       );
-      setPatientRecords(updatedRecords || [patient]); // Fallback ke data yang ada jika API tidak tersedia
-
+      setPatientRecords(updatedRecords || [patient]);
       resetForm();
     } catch (err) {
       console.error("Gagal menyimpan rekam medis:", err);
@@ -117,7 +120,7 @@ export default function FieldPasien({ patient, onBack }) {
     setShowForm(false);
   };
 
-  // Edit rekam medis
+  // Edit record
   const handleEdit = (record) => {
     const rawDate = record.tanggal;
     const isValidDate = rawDate && !isNaN(new Date(rawDate).getTime());
@@ -138,17 +141,17 @@ export default function FieldPasien({ patient, onBack }) {
     setShowForm(true);
   };
 
-  // Hapus rekam medis
+  // Hapus record
   const handleDelete = async (id_rekam_medis) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus rekam medis ini?")) {
       try {
         await dispatch(rekamMedisActions.deleteRekamMedis(id_rekam_medis));
         toast.success("Rekam medis berhasil dihapus");
 
-        // Refresh data
         const updatedRecords = await dispatch(
           rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
         );
+
         setPatientRecords(
           updatedRecords ||
             patientRecords.filter((r) => r.id_rekam_medis !== id_rekam_medis)
@@ -164,7 +167,7 @@ export default function FieldPasien({ patient, onBack }) {
   const handleExportPDF = (record) => {
     const doc = new jsPDF();
     doc.setFontSize(12);
-    doc.text(`Nama Pasien: ${record.pasien || patient.pasien || "-"}`, 10, 10);
+    doc.text(`Nama Pasien: ${record.nama_pasien || "-"}`, 10, 10);
     doc.text(`Keluhan: ${record.keluhan || "-"}`, 10, 20);
     doc.text(`Diagnosa: ${record.diagnosa || "-"}`, 10, 30);
     doc.text(`Tindakan: ${record.tindakan || "-"}`, 10, 40);
@@ -190,40 +193,40 @@ export default function FieldPasien({ patient, onBack }) {
           <button
             onClick={onBack}
             className="p-1 rounded-full hover:bg-blue-100"
+            aria-label="Kembali"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <h2 className="text-lg font-semibold">
-              Rekam Medis: {patient.pasien || "Pasien"}
+              Rekam Medis: {patient.nama_pasien || "Pasien"}
             </h2>
             <p className="text-sm text-gray-500">
               ID Pasien: {patient.id_pasien || "-"}
             </p>
           </div>
         </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingRecord(null);
-            }}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" /> Tambah Rekam Medis
-          </button>
-        </div>
+
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setEditingRecord(null);
+          }}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1"
+        >
+          <Plus className="w-4 h-4" /> Tambah Rekam Medis
+        </button>
       </div>
 
-      {/* Loading state */}
+      {/* Loading */}
       {loading && (
         <div className="p-8 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Memuat data rekam medis...</p>
+          <p>Memuat riwayat rekam medis...</p>
         </div>
       )}
 
-      {/* Form untuk tambah/edit rekam medis */}
+      {/* Form tambah/edit */}
       {showForm && (
         <div className="p-4 border-b bg-gray-50">
           <h3 className="text-md font-semibold mb-3">
@@ -247,7 +250,7 @@ export default function FieldPasien({ patient, onBack }) {
               ></textarea>
             </div>
 
-            {/* Diagnosis */}
+            {/* Diagnosa */}
             <div className="mb-3">
               <label className="block text-gray-700 text-sm font-bold mb-1">
                 Diagnosis
@@ -319,8 +322,8 @@ export default function FieldPasien({ patient, onBack }) {
               />
             </div>
 
-            {/* Aksi */}
-            <div className="col-span-1 md:col-span-2 flex justify-end space-x-2 mt-2">
+            {/* Tombol aksi */}
+            <div className="col-span-2 flex justify-end space-x-2 mt-2">
               <button
                 type="button"
                 onClick={resetForm}
@@ -339,7 +342,7 @@ export default function FieldPasien({ patient, onBack }) {
         </div>
       )}
 
-      {/* Daftar rekam medis */}
+      {/* Daftar riwayat rekam medis */}
       {!loading && patientRecords.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-gray-500">
@@ -397,28 +400,24 @@ export default function FieldPasien({ patient, onBack }) {
                     </p>
                     <p className="text-sm">{record.keluhan || "-"}</p>
                   </div>
-
                   <div>
                     <p className="text-sm font-semibold text-gray-600">
                       Diagnosa:
                     </p>
                     <p className="text-sm">{record.diagnosa || "-"}</p>
                   </div>
-
                   <div>
                     <p className="text-sm font-semibold text-gray-600">
                       Tindakan:
                     </p>
                     <p className="text-sm">{record.tindakan || "-"}</p>
                   </div>
-
                   <div>
                     <p className="text-sm font-semibold text-gray-600">
                       Resep Obat:
                     </p>
                     <p className="text-sm">{record.resep_obat || "-"}</p>
                   </div>
-
                   <div>
                     <p className="text-sm font-semibold text-gray-600">
                       Dokter:
