@@ -20,6 +20,7 @@ const pasienReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         data: action.payload.data,
+        meta: action.payload.meta,
       };
     case FETCH_PASIEN_FAILURE:
       return { ...state, loading: false, error: action.payload };

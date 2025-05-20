@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as rekamMedisActions from "../../../redux-admin/action/rekamMedisAction";
 import * as pasienActions from "../../../redux-admin/action/pasienAction";
-
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function MedicalTab() {
   const dispatch = useDispatch();
@@ -13,6 +11,7 @@ export default function MedicalTab() {
   // Ambil state dari Redux
   const rekamMedisState = useSelector((state) => state.rekamMedis || {});
   const pasienState = useSelector((state) => state.pasien || {});
+  const [editingId, setEditingId] = useState(null);
 
   const {
     data: rekamMedisList = [],
@@ -21,32 +20,46 @@ export default function MedicalTab() {
     meta: rekamMedisMeta = {},
   } = rekamMedisState;
 
-  const { data: pasienList = [], loading: pasienLoading = false } = pasienState;
+  const { data: pasienList = [] } = pasienState;
 
   const currentPage = rekamMedisMeta.page || 1;
   const totalItems = rekamMedisMeta.totalItems || 0;
   const totalPages = rekamMedisMeta.totalPages || 1;
 
-  // State lokal
+  // State lokal form
   const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     id_pasien: "",
     keluhan: "",
     diagnosa: "",
     tindakan: "",
     resep_obat: "",
-    dokter: "",
-    tanggal: "",
+    dokter: "drg. Irna",
+    tanggal: new Date().toISOString().split("T")[0],
   });
-  const [searchQuery, setSearchQuery] = useState("");
 
-  // Handle input form
-  const handleChange = (e) => {
+  const [searchPasienInModal, setSearchPasienInModal] = useState("");
+
+  // Load data saat mount
+  useEffect(() => {
+    dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, ""));
+    console.log(rekamMedisList);
+    dispatch(pasienActions.fetchUser());
+  }, [dispatch, currentPage]);
+
+  // Reset form saat modal ditutup
+  const resetForm = () => {
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+      id_pasien: "",
+      keluhan: "",
+      diagnosa: "",
+      tindakan: "",
+      resep_obat: "",
+      dokter: "drg. Irna",
+      tanggal: "",
     });
+    setSearchPasienInModal("");
+    setShowModal(false);
   };
 
   // Submit form
@@ -54,7 +67,7 @@ export default function MedicalTab() {
     e.preventDefault();
 
     if (!formData.id_pasien || !formData.diagnosa || !formData.tindakan) {
-      toast.error("ID Pasien, Diagnosis, dan Perawatan harus diisi");
+      toast.error("ID Pasien, Diagnosa, dan Tindakan harus diisi");
       return;
     }
 
@@ -64,255 +77,90 @@ export default function MedicalTab() {
         toast.success("Rekam medis berhasil diperbarui");
       } else {
         await dispatch(rekamMedisActions.createRekamMedis(formData));
-        toast.success("Rekam medis berhasil ditambahkan");
+        toast.success("Rekam medis baru berhasil ditambahkan");
       }
 
-      setShowModal(false);
       resetForm();
-      dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, searchQuery));
+      dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, ""));
     } catch (err) {
       console.error("Gagal menyimpan rekam medis:", err);
       toast.error("Gagal menyimpan rekam medis");
     }
   };
 
-  const resetForm = () => {
+  // Handler untuk input change
+  const handleChange = (e) => {
     setFormData({
-      id_pasien: "",
-      keluhan: "",
-      diagnosa: "",
-      tindakan: "",
-      resep_obat: "",
-      dokter: "",
-      tanggal: "",
+      ...formData,
+      [e.target.name]: e.target.value,
     });
-    setEditingId(null);
   };
-
-  // Load data saat mount atau page berubah
-  useEffect(() => {
-    dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, searchQuery));
-    dispatch(pasienActions.fetchPasien());
-  }, [dispatch, currentPage]);
-
-  // Debounce pencarian
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      dispatch(rekamMedisActions.fetchRekamMedis(1, 5, searchQuery));
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, searchQuery]);
-
-  // Pagination handler
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      dispatch(rekamMedisActions.setPageRekamMedis(currentPage + 1));
-      dispatch(
-        rekamMedisActions.fetchRekamMedis(currentPage + 1, 5, searchQuery)
-      );
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentPage > 1) {
-      dispatch(rekamMedisActions.setPageRekamMedis(currentPage - 1));
-      dispatch(
-        rekamMedisActions.fetchRekamMedis(currentPage - 1, 5, searchQuery)
-      );
-    }
-  };
-
-  // Edit handler
   const handleEdit = (record) => {
+    const rawDate = record.tanggal;
+    const isValidDate = rawDate && !isNaN(new Date(rawDate).getTime());
+
     setFormData({
       id_pasien: record.id_pasien,
-      keluhan: record.keluhan,
-      diagnosa: record.diagnosa,
-      tindakan: record.tindakan,
-      resep_obat: record.resep_obat,
-      dokter: record.dokter,
-      tanggal: new Date(record.tanggal).toISOString().split("T")[0],
+      nama_pasien: record.nama_pasien || "-", // 🔹 Ambil nama pasien
+      keluhan: record.keluhan || "",
+      diagnosa: record.diagnosa || "",
+      tindakan: record.tindakan || "",
+      resep_obat: record.resep_obat || "",
+      dokter: record.dokter || "drg. Irna",
+      tanggal: isValidDate ? new Date(rawDate).toISOString().split("T")[0] : "",
     });
+
     setEditingId(record.id_rekam_medis);
     setShowModal(true);
   };
 
-  // Delete handler
-  const handleDelete = (id) => {
+  // Tombol hapus
+  const handleDelete = (id_rekam_medis) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus rekam medis ini?")) {
-      dispatch(rekamMedisActions.deleteRekamMedis(id));
+      dispatch(rekamMedisActions.deleteRekamMedis(id_rekam_medis));
     }
   };
 
+  // Filter pasien berdasarkan nama/email
+  const filteredPasienList = useMemo(() => {
+    if (!searchPasienInModal.trim()) return pasienList;
+
+    const query = searchPasienInModal.toLowerCase();
+    return pasienList.filter(
+      (p) =>
+        p.nama?.toLowerCase().includes(query) ||
+        p.email?.toLowerCase().includes(query)
+    );
+  }, [pasienList, searchPasienInModal]);
+
   return (
     <>
-      <ToastContainer />
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-semibold">Rekam Medis Pasien</h2>
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
-            <input
-              type="text"
-              placeholder="Cari rekam medis..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border rounded-md px-3 py-1 text-sm w-full sm:w-auto"
-            />
-            <button
-              onClick={() => {
-                setShowModal(true);
-                resetForm();
-              }}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm whitespace-nowrap"
-            >
-              + Tambah Rekam Medis
-            </button>
-          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+          >
+            + Tambah Rekam Medis
+          </button>
         </div>
 
         {/* Loader */}
         {rekamMedisLoading && rekamMedisList.length === 0 && (
-          <div className="p-4 text-center">
-            <p>Memuat data...</p>
-            <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent mx-auto mt-2"></div>
-          </div>
+          <div className="p-4 text-center">Memuat data...</div>
         )}
 
         {/* Error Message */}
         {reduxError && (
-          <div className="bg-red-100 text-red-700 p-3 border-b text-center">
+          <div className="bg-red-100 text-red-700 p-3 text-center">
             {reduxError}
           </div>
         )}
 
-        {/* Modal Tambah/Edit Rekam Medis */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">
-                {editingId ? "Edit" : "Tambah"} Rekam Medis
-              </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Pilih Pasien */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Pilih Pasien
-                  </label>
-                  <select
-                    name="id_pasien"
-                    value={formData.id_pasien}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  >
-                    <option value="">-- Pilih Pasien --</option>
-                    {Array.isArray(pasienList) &&
-                      pasienList.map((pasien) => (
-                        <option key={pasien.id_pasien} value={pasien.id_pasien}>
-                          {pasien.nama} ({pasien.email})
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Keluhan */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Keluhan
-                  </label>
-                  <textarea
-                    name="keluhan"
-                    value={formData.keluhan}
-                    onChange={handleChange}
-                    rows="2"
-                    className="w-full px-3 py-2 border rounded"
-                  ></textarea>
-                </div>
-
-                {/* Diagnosa */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Diagnosa
-                  </label>
-                  <textarea
-                    name="diagnosa"
-                    value={formData.diagnosa}
-                    onChange={handleChange}
-                    rows="2"
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  ></textarea>
-                </div>
-
-                {/* Perawatan / Tindakan */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Perawatan / Tindakan
-                  </label>
-                  <input
-                    name="tindakan"
-                    value={formData.tindakan}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  />
-                </div>
-
-                {/* Tanggal */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Tanggal
-                  </label>
-                  <input
-                    name="tanggal"
-                    type="date"
-                    value={formData.tanggal}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  />
-                </div>
-
-                {/* Dokter */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Dokter
-                  </label>
-                  <input
-                    name="dokter"
-                    value={formData.dokter}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded"
-                  />
-                </div>
-
-                {/* Aksi */}
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      resetForm();
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                  >
-                    Simpan
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Table */}
+        {/* Tabel Rekam Medis */}
+        {/* Tabel Rekam Medis */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -321,7 +169,7 @@ export default function MedicalTab() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  ID Pasien
+                  Nama Pasien
                 </th>
                 <th
                   scope="col"
@@ -333,19 +181,25 @@ export default function MedicalTab() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Diagnosa
+                  Jenis kelamin
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Perawatan
+                  Alamat
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Tanggal
+                  Dokter
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Tanggal Lahir
                 </th>
                 <th
                   scope="col"
@@ -355,82 +209,234 @@ export default function MedicalTab() {
                 </th>
               </tr>
             </thead>
+
             <tbody className="bg-white divide-y divide-gray-200">
               {rekamMedisList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center p-4">
+                  <td colSpan={7} className="text-center p-4">
                     Tidak ada rekam medis ditemukan
                   </td>
                 </tr>
               ) : (
-                rekamMedisList.map((record) => (
-                  <tr key={record.id}>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {record.patient}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.diagnosis}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.treatment}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(record.date).toLocaleDateString("id-ID")}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.doctor}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex space-x-2">
+                rekamMedisList.map((record) => {
+                  const isValidDate =
+                    record.tanggal &&
+                    !isNaN(new Date(record.tanggal).getTime());
+
+                  return (
+                    <tr key={record.id_rekam_medis}>
+                      {/* ✅ Nama Pasien */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.nama_pasien || "-"}
+                      </td>
+
+                      {/* Keluhan */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.keluhan || "-"}
+                      </td>
+
+                      {/* Diagnosa */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.jenis_kelamin_pasien || "-"}
+                      </td>
+
+                      {/* Tindakan */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.alamat_pasien || "-"}
+                      </td>
+
+                      {/* Dokter */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.dokter || "-"}
+                      </td>
+
+                      {/* Tanggal */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {isValidDate
+                          ? new Date(
+                              record.tanggal_lahir_pasien
+                            ).toLocaleDateString("id-ID")
+                          : "-"}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center space-x-2">
                         <button
-                          onClick={() => handleEdit(record)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(record.id)}
+                          onClick={() => handleDelete(record.id_rekam_medis)}
                           className="text-red-500 hover:text-red-700"
                         >
                           Hapus
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center gap-2">
-          <div className="text-sm text-gray-500">
-            Menampilkan {rekamMedisList.length} dari {totalItems} rekam medis
-          </div>
+        <div className="p-4 border-t flex justify-between items-center">
+          <span>{totalItems} rekam medis ditemukan</span>
           <div className="flex space-x-2">
             <button
-              onClick={handlePrev}
+              onClick={() =>
+                dispatch(rekamMedisActions.setPageRekamMedis(currentPage - 1))
+              }
               disabled={currentPage <= 1}
-              className="border rounded px-3 py-1 text-sm disabled:opacity-50"
+              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
             >
-              <ChevronLeft className="h-4 w-4 inline sm:hidden" />{" "}
-              <span className="hidden sm:inline">Sebelumnya</span>
+              Sebelumnya
             </button>
             <span className="px-3 py-1 bg-blue-500 text-white rounded">
               {currentPage}
             </span>
             <button
-              onClick={handleNext}
+              onClick={() =>
+                dispatch(rekamMedisActions.setPageRekamMedis(currentPage + 1))
+              }
               disabled={currentPage >= totalPages}
-              className="border rounded px-3 py-1 text-sm disabled:opacity-50"
+              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
             >
-              <ChevronRight className="h-4 w-4 inline sm:hidden" />{" "}
-              <span className="hidden sm:inline">Selanjutnya</span>
+              Selanjutnya
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modal Tambah Rekam Medis */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto">
+            <div className="p-6 border-b">
+              <h3 className="text-lg font-semibold">Tambah Rekam Medis</h3>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Cari Pasien */}
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2">
+                  Cari Pasien
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ketik nama atau email..."
+                  value={searchPasienInModal}
+                  onChange={(e) => setSearchPasienInModal(e.target.value)}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Dropdown Hasil Pencarian */}
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2">
+                  Pilih Pasien
+                </label>
+                <select
+                  name="id_pasien"
+                  value={formData.id_pasien}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Pasien --</option>
+                  {filteredPasienList.length > 0 ? (
+                    filteredPasienList.map((p) => (
+                      <option key={p.id_pasien} value={p.id_pasien}>
+                        {p.nama} ({p.email})
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Tidak ada pasien ditemukan</option>
+                  )}
+                </select>
+              </div>
+
+              {/* Keluhan */}
+              <div>
+                <label className="block text-sm font-bold mb-2">Keluhan</label>
+                <textarea
+                  name="keluhan"
+                  value={formData.keluhan}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                ></textarea>
+              </div>
+
+              {/* Diagnosa */}
+              <div>
+                <label className="block text-sm font-bold mb-2">
+                  Diagnosis
+                </label>
+                <textarea
+                  name="diagnosa"
+                  value={formData.diagnosa}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                ></textarea>
+              </div>
+
+              {/* Tindakan */}
+              <div>
+                <label className="block text-sm font-bold mb-2">Tindakan</label>
+                <input
+                  name="tindakan"
+                  value={formData.tindakan}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Dokter (default drg. Irna) */}
+              <div>
+                <label className="block text-sm font-bold mb-2">Dokter</label>
+                <input
+                  name="dokter"
+                  value={formData.dokter}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded bg-gray-100"
+                  readOnly
+                />
+              </div>
+
+              {/* Tanggal */}
+              <div>
+                <label className="block text-sm font-bold mb-2">Tanggal</label>
+                <input
+                  name="tanggal"
+                  type="date"
+                  value={formData.tanggal}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Aksi Form */}
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

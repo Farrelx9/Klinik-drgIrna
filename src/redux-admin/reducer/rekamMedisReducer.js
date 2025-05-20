@@ -13,14 +13,12 @@ import {
 const initialState = {
   loading: false,
   data: [],
+  error: null,
   meta: {
     totalItems: 0,
-    itemCount: 0,
-    perPage: 5,
     page: 1,
-    totalPages: 1,
+    totalPages: 0,
   },
-  error: null,
 };
 
 const rekamMedisReducer = (state = initialState, action) => {
@@ -37,12 +35,11 @@ const rekamMedisReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        data: action.payload.data,
+        data: Array.isArray(action.payload.data) ? action.payload.data : [], // Fallback jika bukan array
         meta: {
-          ...state.meta,
-          totalItems: action.payload.meta.totalItems,
-          page: action.payload.meta.page,
-          totalPages: action.payload.meta.totalPages,
+          totalItems: action.payload.meta?.totalItems || 0,
+          page: action.payload.meta?.currentPage || 1,
+          totalPages: action.payload.meta?.totalPages || 0,
         },
       };
 
@@ -50,25 +47,21 @@ const rekamMedisReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        data: [action.payload, ...state.data],
-      };
-
-    case FETCH_REKAM_MEDIS_FAILURE:
-    case CREATE_REKAM_MEDIS_FAILURE:
-      return {
-        ...state,
-        loading: false,
-        error: action.payload,
+        data: [...state.data, action.payload], // Tambahkan record baru ke akhir
+        meta: {
+          ...state.meta,
+          totalItems: state.meta.totalItems + 1,
+        },
       };
 
     case UPDATE_REKAM_MEDIS_SUCCESS:
       return {
         ...state,
         loading: false,
-        data: state.data.map((item) =>
-          item.id_rekam_medis === action.payload.id_rekam_medis
-            ? action.payload
-            : item
+        data: state.data.map((record) =>
+          record.id_rekam_medis === action.payload.id_rekam_medis
+            ? { ...record, ...action.payload }
+            : record
         ),
       };
 
@@ -79,6 +72,18 @@ const rekamMedisReducer = (state = initialState, action) => {
         data: state.data.filter(
           (item) => item.id_rekam_medis !== action.payload
         ),
+        meta: {
+          ...state.meta,
+          totalItems: state.meta.totalItems - 1,
+        },
+      };
+
+    case FETCH_REKAM_MEDIS_FAILURE:
+    case CREATE_REKAM_MEDIS_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
       };
 
     case SET_REKAM_MEDIS_PAGE:

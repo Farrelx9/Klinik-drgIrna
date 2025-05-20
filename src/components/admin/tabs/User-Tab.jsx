@@ -321,7 +321,7 @@ export default function UserTab() {
               ) : (
                 users.map((pasien) => (
                   <tr key={pasien.id_pasien}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold">
                       {pasien.nama}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

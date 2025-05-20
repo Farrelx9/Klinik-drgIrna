@@ -1,5 +1,4 @@
 import apiClient from "../../config/apiConfig";
-import { toast } from "react-toastify";
 
 export const FETCH_REKAM_MEDIS_REQUEST = "FETCH_REKAM_MEDIS_REQUEST";
 export const FETCH_REKAM_MEDIS_SUCCESS = "FETCH_REKAM_MEDIS_SUCCESS";
@@ -25,16 +24,28 @@ export const fetchRekamMedis =
         params: { page, limit, search },
       });
 
-      // Mapping data sebelum simpan ke Redux
-      const mappedData = response.data.map((record) => ({
-        id: record.id_rekam_medis,
+      // Pastikan respons API valid
+      if (!response.data || !Array.isArray(response.data.data)) {
+        throw new Error("Invalid response format");
+      }
+
+      const mappedData = response.data.data.map((record) => ({
+        id_rekam_medis: record.id_rekam_medis,
         id_pasien: record.id_pasien,
-        patient: record.pasien?.nama || "Pasien Tidak Diketahui",
-        diagnosis: record.diagnosa,
-        treatment: record.tindakan,
+
+        // 🔹 Data pasien
+        nama_pasien: record.pasien?.nama || "-",
+        alamat_pasien: record.pasien?.alamat || "-",
+        jenis_kelamin_pasien: record.pasien?.jenis_kelamin || "-",
+        tanggal_lahir_pasien: record.pasien?.tanggal_lahir || null,
+
+        // 🔹 Field rekam medis
+        keluhan: record.keluhan,
+        diagnosa: record.diagnosa,
+        tindakan: record.tindakan,
         resep_obat: record.resep_obat,
-        doctor: record.dokter,
-        date: record.tanggal,
+        dokter: record.dokter,
+        tanggal: record.tanggal,
         createdAt: record.createdAt,
       }));
 
@@ -43,11 +54,11 @@ export const fetchRekamMedis =
         payload: {
           data: mappedData,
           meta: {
-            totalItems: response.data.length,
-            page,
-            totalPages: Math.ceil(response.data.length / limit),
-            itemCount: response.data.length,
-            perPage: limit,
+            totalItems: response.data.meta?.totalItems || mappedData.length,
+            currentPage: response.data.meta?.currentPage || page,
+            totalPages:
+              response.data.meta?.totalPages ||
+              Math.ceil(mappedData.length / limit),
           },
         },
       });
@@ -56,7 +67,6 @@ export const fetchRekamMedis =
         type: FETCH_REKAM_MEDIS_FAILURE,
         payload: error.message,
       });
-      toast.error("Gagal memuat rekam medis");
     }
   };
 
@@ -68,18 +78,23 @@ export const createRekamMedis = (formData) => async (dispatch) => {
     const response = await apiClient.post("/rekamMedis/buat", formData);
     dispatch({
       type: CREATE_REKAM_MEDIS_SUCCESS,
-      payload: response.data,
+      payload: {
+        ...response.data, // asumsi response.data berisi semua field
+        nama_pasien: response.data.pasien?.nama || "-",
+        alamat_pasien: response.data.pasien?.alamat || "-",
+        jenis_kelamin_pasien: response.data.pasien?.jenis_kelamin || "-",
+        tanggal_lahir_pasien: response.data.pasien?.tanggal_lahir || null,
+      },
     });
 
     // Refresh list setelah tambah
     dispatch(fetchRekamMedis(1, 5, ""));
-    toast.success("Rekam medis berhasil ditambahkan");
+    ("Rekam medis berhasil ditambahkan");
   } catch (error) {
     dispatch({
       type: CREATE_REKAM_MEDIS_FAILURE,
       payload: error.response?.data?.error || "Gagal menambahkan rekam medis",
     });
-    toast.error(error.response?.data?.error || "Gagal menambahkan rekam medis");
   }
 };
 
@@ -94,9 +109,9 @@ export const updateRekamMedis = (id, formData) => async (dispatch) => {
 
     // Refresh list setelah update
     dispatch(fetchRekamMedis());
-    toast.success("Rekam medis berhasil diperbarui");
+    ("Rekam medis berhasil diperbarui");
   } catch (error) {
-    toast.error("Gagal memperbarui rekam medis");
+    ("Gagal memperbarui rekam medis");
   }
 };
 
@@ -111,9 +126,9 @@ export const deleteRekamMedis = (id) => async (dispatch) => {
 
     // Refresh list setelah hapus
     dispatch(fetchRekamMedis());
-    toast.success("Rekam medis berhasil dihapus");
+    ("Rekam medis berhasil dihapus");
   } catch (error) {
-    toast.error("Gagal menghapus rekam medis");
+    ("Gagal menghapus rekam medis");
   }
 };
 

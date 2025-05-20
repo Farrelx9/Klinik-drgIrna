@@ -278,13 +278,13 @@ export default function JenisTindakan() {
               ) : (
                 data.map((tindakan) => (
                   <tr key={tindakan.id_tindakan}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 max-w-xs overflow-hidden break-words font-semibold">
                       {tindakan.nama_tindakan}
                     </td>
                     <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                       {tindakan.deskripsi}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                       Rp{tindakan.harga.toLocaleString("id-ID")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center space-x-2">
