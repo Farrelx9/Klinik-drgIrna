@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyOtp, resendOtp } from "../../redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
-import LOGO from "../images/Logoklinik.png";
-import { FaArrowLeft } from "react-icons/fa";
+import LOGO from "../images/LogoKlinik.png";
 
 export default function VerifyOTP() {
   const dispatch = useDispatch();
