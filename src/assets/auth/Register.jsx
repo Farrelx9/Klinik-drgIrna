@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/actions/authActions";
 import BG1 from "../images/dental2.jpg";
-import LOGO from "../images/Logoklinik.png";
+import LOGO from "../images/LogoKlinik.png";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
