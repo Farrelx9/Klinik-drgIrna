@@ -390,7 +390,7 @@ export const forgotPassword = (email) => async (dispatch) => {
     dispatch({ type: "AUTH_REQUEST" });
 
     const response = await fetch(
-      "http://localhost:3000/api/auth/forgotPassword",
+      "https://bejs-klinik.vercel.app/api/auth/forgotPassword",
       {
         method: "POST",
         headers: {
@@ -427,7 +427,7 @@ export const verifyResetOtp = (email, kode_otp) => async (dispatch) => {
     dispatch({ type: "AUTH_REQUEST" });
 
     const response = await fetch(
-      "http://localhost:3000/api/auth/resetPassword",
+      "https://bejs-klinik.vercel.app/api/auth/resetPassword",
       {
         method: "POST",
         headers: {
@@ -464,7 +464,7 @@ export const updatePassword = (email, newPassword) => async (dispatch) => {
     dispatch({ type: "AUTH_REQUEST" });
 
     const response = await fetch(
-      "http://localhost:3000/api/auth/updatePassword",
+      "https://bejs-klinik.vercel.app/api/auth/updatePassword",
       {
         method: "POST",
         headers: {

@@ -2,7 +2,7 @@ import axios from "axios";
 import store from "../store";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://bejs-klinik.vercel.app/api",
 });
 
 // Request Interceptor - tambahkan token otomatis
