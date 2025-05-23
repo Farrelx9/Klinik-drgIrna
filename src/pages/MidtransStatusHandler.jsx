@@ -43,9 +43,7 @@ const MidtransStatusHandler = () => {
     if (transactionStatus === "capture" || transactionStatus === "settlement") {
       // Pembayaran berhasil
       toast.success("Pembayaran berhasil!");
-      console.log(
-        `Payment successful, navigating to /konsultasi?id=${orderId}`
-      );
+      console.log(`Payment successful, navigating to /konsultasi/:id`);
       navigate(`/konsultasi?id=${orderId}`); // Arahkan ke halaman chat dengan ID pesanan
     } else if (transactionStatus === "pending") {
       // Pembayaran pending
