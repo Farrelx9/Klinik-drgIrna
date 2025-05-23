@@ -13,7 +13,7 @@ import VerifyOTP from "./assets/auth/VerifyOTP";
 import Konsultasi from "./pages/Konsultasi";
 import Profile from "./pages/Profile";
 import JanjiTemu from "./pages/JanjiTemu";
-import ForgotPassword from "./assets/auth/forgotPassword";
+import ForgotPassword from "./assets/auth/ForgotPassword";
 import ResetPassword from "./assets/auth/ResetPassword";
 import VerifyResetOTP from "./assets/auth/VerifyReset";
 import Notifikasi from "./pages/Notifikasi";
