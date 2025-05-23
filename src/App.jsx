@@ -23,7 +23,6 @@ import LoginAdmin from "./admin/LoginAdmin";
 import "react-toastify/dist/ReactToastify.css";
 import JadwalKonsultasi from "./pages/JadwalKonsultasi";
 import Pembayaran from "./pages/Pembayaran";
-import MidtransStatusHandler from "./pages/MidtransStatusHandler";
 import ChatHistory from "./pages/ChatHistory";
 
 function App() {
@@ -46,17 +45,13 @@ function App() {
           <Route path="/jadwal-konsultasi" element={<JadwalKonsultasi />} />
           <Route path="/pembayaran" element={<Pembayaran />} />
           <Route path="/chat-history" element={<ChatHistory />} />
-          <Route
-            path="/midtrans-callback"
-            element={<MidtransStatusHandler />}
-          />
           {/* ADMIN PAGE*/}
           <Route path="/dashboardadmin" element={<DashboardAdmin />} />
           <Route path="/login-admin" element={<LoginAdmin />} />
         </Routes>
         <ToastContainer
-          position="top-right" // atau posisi lain yang Anda inginkan
-          autoClose={5000} // toast akan tertutup setelah 5 detik
+          position="top-right"
+          autoClose={5000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick
