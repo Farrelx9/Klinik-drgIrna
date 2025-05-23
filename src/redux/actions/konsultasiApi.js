@@ -41,20 +41,3 @@ export const pilihJadwal = createAsyncThunk(
     }
   }
 );
-
-// Cek sesi aktif pasien
-export const getSesiAktifByPasien = createAsyncThunk(
-  "konsultasi/getSesiAktifByPasien",
-  async (id_pasien, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.get(
-        `/konsultasi/chat/sesi-aktif/${id_pasien}`
-      );
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Tidak ada sesi aktif"
-      );
-    }
-  }
-);

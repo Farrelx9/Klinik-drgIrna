@@ -61,7 +61,7 @@ const Pembayaran = () => {
             existingPayment.status === "sukses"
           ) {
             toast.success("Pembayaran untuk jadwal ini sudah lunas!");
-            navigate(`/konsultasi?id=${id_chat}`);
+            navigate(`/konsultasi/${id_chat}`);
           } else {
             toast.info(
               "Pembayaran untuk jadwal ini sudah ada dalam status pending/gagal. Mengecek status terbaru..."
@@ -80,7 +80,7 @@ const Pembayaran = () => {
                 statusData.status === "settlement")
             ) {
               toast.success("Pembayaran sudah lunas!");
-              navigate(`/konsultasi?id=${id_chat}`);
+              navigate(`/konsultasi/${id_chat}`);
             } else {
               toast.error(
                 "Tidak dapat memproses pembayaran atau pembayaran belum lunas."
@@ -104,7 +104,7 @@ const Pembayaran = () => {
           err.includes("Pembayaran untuk jadwal ini sudah ada.")
         ) {
           toast.success("Pembayaran untuk jadwal ini sudah lunas!");
-          navigate(`/konsultasi?id=${id_chat}`);
+          navigate(`/konsultasi/${id_chat}`);
         } else {
           const errorMessage =
             err && typeof err === "string"

@@ -1,4 +1,4 @@
-"use client";
+import React from "react";
 
 import { ChevronLeft, User } from "lucide-react";
 import { useState } from "react";
