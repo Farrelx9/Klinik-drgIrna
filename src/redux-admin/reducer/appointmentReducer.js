@@ -1,4 +1,3 @@
-// appointmentReducer.js
 import {
   FETCH_APPOINTMENTS_REQUEST,
   FETCH_APPOINTMENTS_SUCCESS,
@@ -16,8 +15,8 @@ const initialState = {
   appointments: [],
   meta: {
     totalItems: 0,
-    totalPages: 1,
     currentPage: 1,
+    totalPages: 1,
     hasNextPage: false,
     hasPrevPage: false,
   },
@@ -36,8 +35,14 @@ const appointmentReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        appointments: action.payload.data || [], // Fallback ke array kosong
-        meta: action.payload.meta || state.meta,
+        appointments: action.payload.data || [],
+        meta: {
+          totalItems: parseInt(action.payload.meta?.totalItems) || 0,
+          currentPage: parseInt(action.payload.meta?.currentPage) || 1,
+          totalPages: parseInt(action.payload.meta?.totalPages) || 1,
+          hasNextPage: Boolean(action.payload.meta?.hasNextPage),
+          hasPrevPage: Boolean(action.payload.meta?.hasPrevPage),
+        },
       };
 
     case FETCH_APPOINTMENTS_FAILURE:
@@ -53,6 +58,11 @@ const appointmentReducer = (state = initialState, action) => {
         appointments: state.appointments.map((apt) =>
           apt.id_janji === action.payload.id_janji ? action.payload : apt
         ),
+      };
+    case "SET_PAGE_APPOINTMENT":
+      return {
+        ...state,
+        currentPage: action.payload,
       };
 
     default:

@@ -60,7 +60,7 @@ export default function Beranda() {
                 title="Janji Temu"
                 description="Atur jadwal konsultasi dokter secara mudah dan cepat"
                 icon={<CalendarClock size={32} />}
-                link="/list-jadwal"
+                link="/jadwal-konsultasi"
               />
 
               {/* Pengajuan Rekam Medis */}

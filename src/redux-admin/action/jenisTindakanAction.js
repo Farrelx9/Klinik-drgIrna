@@ -31,13 +31,13 @@ export const fetchJenisTindakan =
         params: { page, limit, search },
       });
 
-      // Mapping field API ke format yang diharapkan reducer
+      // ✅ Perbaiki mapping meta agar selaras dengan respons API
       const mappedMeta = {
-        page: response.data.meta.currentPage,
-        itemCount: response.data.meta.itemCount,
-        perPage: limit,
+        page: response.data.meta.page, 
         totalItems: response.data.meta.totalItems,
         totalPages: response.data.meta.totalPages,
+        hasNextPage: response.data.meta.hasNextPage,
+        hasPrevPage: response.data.meta.hasPrevPage,
       };
 
       dispatch({

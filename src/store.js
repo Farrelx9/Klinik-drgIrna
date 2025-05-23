@@ -10,6 +10,9 @@ import appointmentReducer from "./redux-admin/reducer/appointmentReducer";
 import jenisTindakanReducer from "./redux-admin/reducer/jenisTindakanReducer";
 import rekamMedisReducer from "./redux-admin/reducer/rekamMedisReducer";
 import pasienReducer from "./redux-admin/reducer/pasienReducer";
+import konsultasiSlice from "./redux/reducers/konsultasiSlice";
+import pembayaranSlice from "./redux/reducers/pembayaranSlice";
+import chatSlice from "./redux/reducers/chatSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -21,6 +24,9 @@ const rootReducer = combineReducers({
   jenisTindakan: jenisTindakanReducer,
   rekamMedis: rekamMedisReducer,
   pasien: pasienReducer,
+  konsultasi: konsultasiSlice,
+  pembayaran: pembayaranSlice,
+  chat: chatSlice,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));

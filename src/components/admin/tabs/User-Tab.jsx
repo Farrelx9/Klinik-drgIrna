@@ -354,7 +354,7 @@ export default function UserTab() {
         {/* Pagination */}
         <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center gap-2">
           <div className="text-sm text-gray-500">
-            Menampilkan {users.length} dari {totalItems} pasien
+            Menampilkan {meta.itemCount} dari {totalItems} pasien
           </div>
           <div className="flex space-x-2">
             <button

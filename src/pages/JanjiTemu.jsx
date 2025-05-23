@@ -47,7 +47,8 @@ const JanjiTemu = () => {
   const filteredList = filterDate
     ? list.filter(
         (item) =>
-          new Date(item.tanggal_waktu).toISOString().split("T")[0] === filterDate
+          new Date(item.tanggal_waktu).toISOString().split("T")[0] ===
+          filterDate
       )
     : list;
 
@@ -244,7 +245,7 @@ const JanjiTemu = () => {
 
           {/* Halaman Saat Ini */}
           <span className="col-span-1 rounded-md bg-gray-100 px-3 py-1 text-sm text-center font-medium self-center">
-            Halaman {meta.currentPage}
+            Halaman {meta.currentPage} dari {meta.totalPages}
           </span>
 
           {/* Tombol Selanjutnya */}

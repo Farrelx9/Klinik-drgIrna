@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
-import {
-  FaUser,
-  FaCalendarAlt,
-  FaHistory,
-  FaCog,
-  FaEdit,
-  FaCamera,
-} from "react-icons/fa";
+import { FaUser, FaCalendarAlt, FaCog, FaEdit, FaCamera } from "react-icons/fa";
 import {
   fetchProfile,
   logout,
@@ -19,28 +12,19 @@ import { updateProfile as profileActionsUpdateProfile } from "../redux/actions/p
 import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
 import defaultProfile from "../assets/images/drg irna.png";
 import { useNavigate } from "react-router-dom";
-
-const appointmentHistory = [
-  {
-    id: 1,
-    date: "15 Maret 2024",
-    time: "10:00 WIB",
-    service: "Pemeriksaan Gigi",
-    status: "Selesai",
-  },
-  {
-    id: 2,
-    date: "20 Maret 2024",
-    time: "14:00 WIB",
-    service: "Pembersihan Karang Gigi",
-    status: "Dijadwalkan",
-  },
-];
+import { fetchBookedAppointments } from "../redux/actions/profileActions";
 
 export default function Profile() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, loading, error } = useSelector((state) => state.auth);
+  const {
+    user,
+    loading,
+    error,
+    bookedAppointments,
+    loadingAppointments,
+    errorAppointments,
+  } = useSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState("personal");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [otp, setOtp] = useState("");
@@ -51,6 +35,8 @@ export default function Profile() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { totalPages } = useSelector((state) => state.auth);
   const [editFormData, setEditFormData] = useState({
     nama: "",
     noTelp: "",
@@ -59,10 +45,12 @@ export default function Profile() {
     jenis_kelamin: "",
   });
 
+  // Load profile data
   useEffect(() => {
     dispatch(fetchProfile(navigate));
   }, [dispatch, navigate]);
 
+  // Check token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -70,6 +58,7 @@ export default function Profile() {
     }
   }, [navigate]);
 
+  // Load form data & janji temu
   useEffect(() => {
     if (user) {
       setEditFormData({
@@ -84,6 +73,13 @@ export default function Profile() {
       setPreviewImage(user.pasien?.profilePicture || null);
     }
   }, [user]);
+
+  // Load booked appointments
+  useEffect(() => {
+    if (user && user.pasien && user.pasien.id_pasien) {
+      dispatch(fetchBookedAppointments(user.pasien.id_pasien, currentPage));
+    }
+  }, [user, dispatch, currentPage]);
 
   const handleLogout = () => {
     setShowLogoutModal(true);
@@ -140,7 +136,6 @@ export default function Profile() {
     if (profilePicture) {
       formData.append("profilePicture", profilePicture);
     }
-
     try {
       const success = await dispatch(profileActionsUpdateProfile(formData));
       if (success) {
@@ -250,7 +245,6 @@ export default function Profile() {
               </div>
             </div>
           </div>
-
           {/* Tabs */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="flex border-b">
@@ -264,17 +258,6 @@ export default function Profile() {
               >
                 <FaUser className="inline mr-2" />
                 Informasi Pribadi
-              </button>
-              <button
-                className={`px-6 py-3 font-medium ${
-                  activeTab === "history"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                onClick={() => setActiveTab("history")}
-              >
-                <FaHistory className="inline mr-2" />
-                History
               </button>
               <button
                 className={`px-6 py-3 font-medium ${
@@ -299,7 +282,6 @@ export default function Profile() {
                 Pengaturan
               </button>
             </div>
-
             {/* Tab Content */}
             <div className="p-6">
               {activeTab === "personal" && (
@@ -429,7 +411,6 @@ export default function Profile() {
                       )}
                     </div>
                   </div>
-
                   <div className="flex space-x-4 mt-6">
                     {isEditingProfile ? (
                       <>
@@ -458,39 +439,236 @@ export default function Profile() {
                   </div>
                 </div>
               )}
-
               {activeTab === "appointments" && (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">
-                    Daftar janji temu akan ditampilkan di sini
-                  </p>
-                </div>
-              )}
-              {activeTab === "history" && (
-                <div className="space-y-4">
-                  {appointmentHistory.map((appointment) => (
-                    <div key={appointment.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium text-gray-900">
-                            {appointment.service}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {appointment.date} - {appointment.time}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm ${
-                            appointment.status === "Selesai"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
+                <div className="space-y-6">
+                  {loadingAppointments ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : errorAppointments ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                      <div className="flex flex-col items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-10 w-10 text-red-500 mb-2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
                         >
-                          {appointment.status}
-                        </span>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <p className="text-red-700 font-medium mb-1">
+                          Gagal memuat janji temu
+                        </p>
+                        <p className="text-red-600">{errorAppointments}</p>
                       </div>
                     </div>
-                  ))}
+                  ) : bookedAppointments.length > 0 ? (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full table-auto">
+                          <thead>
+                            <tr className="bg-gray-50 text-left">
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Tanggal
+                              </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Waktu
+                              </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Keluhan
+                              </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Status
+                              </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Dokter
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {bookedAppointments.map((appointment) => (
+                              <tr
+                                key={appointment.id_janji}
+                                className="hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {new Date(
+                                    appointment.tanggal_waktu
+                                  ).toLocaleDateString("id-ID", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </td>
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {new Date(
+                                    appointment.tanggal_waktu
+                                  ).toLocaleTimeString("id-ID", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </td>
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {appointment.keluhan || "-"}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                      appointment.status === "pending"
+                                        ? "bg-yellow-50 text-yellow-700"
+                                        : appointment.status === "cancelled"
+                                        ? "bg-red-50 text-red-700"
+                                        : "bg-green-50 text-green-700"
+                                    }`}
+                                  >
+                                    {appointment.status === "pending" && (
+                                      <svg
+                                        className="w-3.5 h-3.5 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                    )}
+                                    {appointment.status === "cancelled" && (
+                                      <svg
+                                        className="w-3.5 h-3.5 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M6 18L18 6M6 6l12 12"
+                                        />
+                                      </svg>
+                                    )}
+                                    {appointment.status === "confirmed" && (
+                                      <svg
+                                        className="w-3.5 h-3.5 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
+                                    )}
+                                    <span className="capitalize">
+                                      {appointment.status === "pending"
+                                        ? "Menunggu"
+                                        : appointment.status === "confirmed"
+                                        ? "Terkonfirmasi"
+                                        : appointment.status === "cancelled"
+                                        ? "Dibatalkan"
+                                        : appointment.status}
+                                    </span>
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {appointment.dokter || "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 text-gray-400 mx-auto mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-700 mb-2">
+                        Tidak ada janji temu
+                      </h3>
+                      <p className="text-gray-500 mb-4">
+                        Anda belum memiliki janji temu yang terjadwal.
+                      </p>
+                      <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                        Buat Janji Temu
+                      </button>
+                    </div>
+                  )}
+                  {bookedAppointments.length > 0 && (
+                    <div className="flex justify-center mt-6">
+                      <nav className="inline-flex rounded-md shadow-sm -space-x-px">
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                          className={`${
+                            currentPage === 1
+                              ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                              : "bg-white hover:bg-gray-50"
+                          } relative inline-flex items-center px-2 py-2 border border-gray-300 text-sm font-medium rounded-l-md`}
+                        >
+                          Sebelumnya
+                        </button>
+
+                        {[...Array(totalPages)].map((_, i) => (
+                          <button
+                            key={i + 1}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`${
+                              currentPage === i + 1
+                                ? "z-10 bg-primary text-white"
+                                : "bg-white hover:bg-gray-50"
+                            } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                          className={`${
+                            currentPage === totalPages
+                              ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                              : "bg-white hover:bg-gray-50"
+                          } relative inline-flex items-center px-2 py-2 border border-gray-300 text-sm font-medium rounded-r-md`}
+                        >
+                          Selanjutnya
+                        </button>
+                      </nav>
+                    </div>
+                  )}
                 </div>
               )}
 

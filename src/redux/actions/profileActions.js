@@ -3,6 +3,9 @@ import {
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
   UPDATE_PROFILE_FAILURE,
+  FETCH_BOOKED_APPOINTMENTS_REQUEST,
+  FETCH_BOOKED_APPOINTMENTS_SUCCESS,
+  FETCH_BOOKED_APPOINTMENTS_FAILURE,
 } from "../types/authTypes";
 
 //update profile dengan PUT
@@ -52,3 +55,39 @@ export const updateProfile = (profileData) => {
     }
   };
 };
+
+export const fetchBookedAppointments =
+  (id_pasien, page = 1, limit = 5) =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_BOOKED_APPOINTMENTS_REQUEST });
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await apiClient.get(
+        `/janjiTemu/booked/${id_pasien}?page=${page}&limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      dispatch({
+        type: FETCH_BOOKED_APPOINTMENTS_SUCCESS,
+        payload: {
+          data: response.data.data,
+          meta: response.data.meta,
+        },
+      });
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Gagal memuat janji temu";
+
+      dispatch({
+        type: FETCH_BOOKED_APPOINTMENTS_FAILURE,
+        payload: message,
+      });
+    }
+  };

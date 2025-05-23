@@ -18,6 +18,9 @@ import {
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
   UPDATE_PROFILE_FAILURE,
+  FETCH_BOOKED_APPOINTMENTS_REQUEST,
+  FETCH_BOOKED_APPOINTMENTS_SUCCESS,
+  FETCH_BOOKED_APPOINTMENTS_FAILURE,
 } from "../types/authTypes";
 
 const initialState = {
@@ -28,6 +31,11 @@ const initialState = {
     : null,
   isAuthenticated: !!localStorage.getItem("token"),
   token: localStorage.getItem("token"),
+  bookedAppointments: [],
+  appointmentsLoading: false,
+  appointmentsError: null,
+  currentPage: 1,
+  totalPages: 1,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -136,6 +144,29 @@ const authReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: null,
+      };
+    case FETCH_BOOKED_APPOINTMENTS_REQUEST:
+      return {
+        ...state,
+        appointmentsLoading: true,
+        appointmentsError: null,
+      };
+
+    case FETCH_BOOKED_APPOINTMENTS_SUCCESS:
+      return {
+        ...state,
+        appointmentsLoading: false,
+        bookedAppointments: action.payload.data || action.payload,
+        currentPage: action.payload.meta?.page || 1,
+        totalPages: action.payload.meta?.totalPages || 1,
+        appointmentsError: null,
+      };
+
+    case FETCH_BOOKED_APPOINTMENTS_FAILURE:
+      return {
+        ...state,
+        appointmentsLoading: false,
+        appointmentsError: action.payload,
       };
     default:
       return state;

@@ -110,3 +110,8 @@ export const updatePaymentMethod = (id, paymentMethod) => async (dispatch) => {
     });
   }
 };
+
+export const setPage = (newPage) => ({
+  type: "SET_PAGE_APPOINTMENT",
+  payload: newPage,
+});

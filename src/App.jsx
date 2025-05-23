@@ -21,6 +21,9 @@ import DashboardAdmin from "./admin/DashboardAdmin";
 import LoginAdmin from "./admin/LoginAdmin";
 
 import "react-toastify/dist/ReactToastify.css";
+import JadwalKonsultasi from "./pages/JadwalKonsultasi";
+import Pembayaran from "./pages/Pembayaran";
+import MidtransStatusHandler from "./pages/MidtransStatusHandler";
 
 function App() {
   return (
@@ -39,11 +42,28 @@ function App() {
           <Route path="/verifyReset" element={<VerifyResetOTP />} />
           <Route path="/list-jadwal" element={<JanjiTemu />} />
           <Route path="/notifikasi" element={<Notifikasi />} />
+          <Route path="/jadwal-konsultasi" element={<JadwalKonsultasi />} />
+          <Route path="/pembayaran" element={<Pembayaran />} />
+          <Route
+            path="/midtrans-callback"
+            element={<MidtransStatusHandler />}
+          />
           {/* ADMIN PAGE*/}
           <Route path="/dashboardadmin" element={<DashboardAdmin />} />
           <Route path="/login-admin" element={<LoginAdmin />} />
         </Routes>
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-right" // atau posisi lain yang Anda inginkan
+          autoClose={5000} // toast akan tertutup setelah 5 detik
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          limit={2}
+        />
       </Router>
     </Provider>
   );

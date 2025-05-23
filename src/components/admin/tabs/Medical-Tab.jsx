@@ -337,13 +337,18 @@ export default function MedicalTab() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto">
+            {/* Header */}
             <div className="p-6 border-b">
               <h3 className="text-lg font-semibold">Tambah Rekam Medis</h3>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Form */}
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 space-y-4 overflow-y-auto max-h-[80vh]"
+            >
               {/* Cari Pasien */}
-              <div className="mb-4">
+              <div>
                 <label className="block text-sm font-bold mb-2">
                   Cari Pasien
                 </label>
@@ -357,7 +362,7 @@ export default function MedicalTab() {
               </div>
 
               {/* Dropdown Hasil Pencarian */}
-              <div className="mb-4">
+              <div>
                 <label className="block text-sm font-bold mb-2">
                   Pilih Pasien
                 </label>
