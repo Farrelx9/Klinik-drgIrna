@@ -57,7 +57,7 @@ export default function Beranda() {
                 title="Chat dengan Dokter"
                 description="Konsultasi langsung dengan lebih dari 50 spesialis 24/7"
                 icon={<MessageSquareText size={32} />}
-                link="/konsultasi"
+                link="/jadwal-konsultasi"
               />
 
               {/* Janji Temu */}
