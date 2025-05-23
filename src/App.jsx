@@ -24,6 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 import JadwalKonsultasi from "./pages/JadwalKonsultasi";
 import Pembayaran from "./pages/Pembayaran";
 import ChatHistory from "./pages/ChatHistory";
+import PembayaranSuksesHandler from "./pages/PembayaranSuksesHandler";
 
 function App() {
   return (
@@ -45,6 +46,10 @@ function App() {
           <Route path="/jadwal-konsultasi" element={<JadwalKonsultasi />} />
           <Route path="/pembayaran" element={<Pembayaran />} />
           <Route path="/chat-history" element={<ChatHistory />} />
+          <Route
+            path="/pembayaran-sukses"
+            element={<PembayaranSuksesHandler />}
+          />
           {/* ADMIN PAGE*/}
           <Route path="/dashboardadmin" element={<DashboardAdmin />} />
           <Route path="/login-admin" element={<LoginAdmin />} />
