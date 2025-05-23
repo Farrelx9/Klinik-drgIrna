@@ -4,7 +4,12 @@ import Navbar from "../components/Navbar";
 import drgIrna from "../assets/images/drg irna.png";
 import klinik from "../assets/images/klinik.jpg";
 import ServiceCard from "../components/ServiceCard";
-import { MessageSquareText, CalendarClock, ClipboardPlus } from "lucide-react";
+import {
+  MessageSquareText,
+  CalendarClock,
+  ClipboardPlus,
+  MessageCircleCodeIcon,
+} from "lucide-react";
 export default function Beranda() {
   return (
     <div>
@@ -62,7 +67,12 @@ export default function Beranda() {
                 icon={<CalendarClock size={32} />}
                 link="/jadwal-konsultasi"
               />
-
+              <ServiceCard
+                title="Datar Chat"
+                description="Akses chat dengan dokter setelah melakukan pembayaran disini!"
+                icon={<MessageCircleCodeIcon size={32} />}
+                link="/chat-history"
+              />
               {/* Pengajuan Rekam Medis */}
               <ServiceCard
                 title="Pengajuan Rekam Medis"

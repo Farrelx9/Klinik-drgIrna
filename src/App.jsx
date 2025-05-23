@@ -24,6 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 import JadwalKonsultasi from "./pages/JadwalKonsultasi";
 import Pembayaran from "./pages/Pembayaran";
 import MidtransStatusHandler from "./pages/MidtransStatusHandler";
+import ChatHistory from "./pages/ChatHistory";
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/janjiTemu" element={<JanjiTemu />} />
-          <Route path="/konsultasi" element={<Konsultasi />} />
+          <Route path="/konsultasi/:id" element={<Konsultasi />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
@@ -44,6 +45,7 @@ function App() {
           <Route path="/notifikasi" element={<Notifikasi />} />
           <Route path="/jadwal-konsultasi" element={<JadwalKonsultasi />} />
           <Route path="/pembayaran" element={<Pembayaran />} />
+          <Route path="/chat-history" element={<ChatHistory />} />
           <Route
             path="/midtrans-callback"
             element={<MidtransStatusHandler />}

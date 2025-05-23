@@ -1,8 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getRiwayatChat, kirimPesan } from "../actions/chatActions";
+import {
+  getRiwayatChat,
+  kirimPesan,
+  cekSesiAktifByPasien,
+} from "../actions/chatActions";
 
 const initialState = {
-  data: [], // Riwayat chat
+  messages: [],
+  sessionStatus: null,
+  activeChatId: null,
   isLoading: false,
   error: null,
 };
@@ -11,8 +17,9 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    resetChat: (state) => {
-      state.data = [];
+    resetChat: () => initialState,
+    clearError: (state) => {
+      state.error = null;
     },
   },
   extraReducers(builder) {
@@ -22,7 +29,7 @@ const chatSlice = createSlice({
     });
     builder.addCase(getRiwayatChat.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.data = Array.isArray(action.payload) ? action.payload : [];
+      state.messages = Array.isArray(action.payload) ? action.payload : [];
     });
     builder.addCase(getRiwayatChat.rejected, (state, action) => {
       state.isLoading = false;
@@ -34,13 +41,31 @@ const chatSlice = createSlice({
     });
     builder.addCase(kirimPesan.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.data.push(action.payload);
+      state.messages.push(action.payload);
     });
     builder.addCase(kirimPesan.rejected, (state, action) => {
       state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    builder.addCase(cekSesiAktifByPasien.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(cekSesiAktifByPasien.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.sessionStatus = action.payload.status;
+      state.activeChatId = action.payload.id_chat;
+    });
+    builder.addCase(cekSesiAktifByPasien.rejected, (state, action) => {
+      state.isLoading = false;
+      state.sessionStatus = "none";
       state.error = action.payload;
     });
   },
 });
 
 export default chatSlice.reducer;
+
+// Export reducers
+export const { resetChat, clearError } = chatSlice.actions;
