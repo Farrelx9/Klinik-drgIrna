@@ -23,10 +23,13 @@ export const loginRole = (email, password) => async (dispatch) => {
   dispatch(loginRoleRequest());
 
   try {
-    const res = await axios.post("http://localhost:3000/api/auth/login/role", {
-      email,
-      password,
-    });
+    const res = await axios.post(
+      "https://bejs-klinik.vercel.app/api/auth/login/role",
+      {
+        email,
+        password,
+      }
+    );
 
     const { token, role } = res.data;
 
