@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 // Assets
 import BG1 from "../assets/images/dental2.jpg";
-import LOGO from "../assets/images/Logoklinik.png";
+import LOGO from "../assets/images/LogoKlinik.png";
 import { FaArrowLeft } from "react-icons/fa";
 
 export default function LoginAdmin() {

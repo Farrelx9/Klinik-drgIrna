@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyResetOtp, resendOtp } from "../../redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
-import LOGO from "../images/Logoklinik.png";
+import LOGO from "../images/LogoKlinik.png";
 import { FaArrowLeft } from "react-icons/fa";
 
 export default function VerifyResetOTP() {
