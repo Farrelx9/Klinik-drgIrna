@@ -3,11 +3,19 @@ import {
   getChatListForAdmin,
   getChatDetail,
   kirimPesanAdmin,
-} from "../actions/chatAdminActions";
+  aktifkanSesi,
+} from "../action/adminChatAction";
 
 const initialState = {
   chatList: [],
   activeChat: null,
+  meta: {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
   isLoading: false,
   error: null,
 };
@@ -28,7 +36,16 @@ const chatAdminSlice = createSlice({
     });
     builder.addCase(getChatListForAdmin.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.chatList = Array.isArray(action.payload) ? action.payload : [];
+      state.chatList = Array.isArray(action.payload.data)
+        ? action.payload.data
+        : [];
+      state.meta = {
+        currentPage: action.payload.meta.currentPage,
+        totalPages: action.payload.meta.totalPages,
+        totalItems: action.payload.meta.totalItems,
+        hasNextPage: action.payload.meta.hasNextPage,
+        hasPrevPage: action.payload.meta.hasPrevPage,
+      };
     });
     builder.addCase(getChatListForAdmin.rejected, (state, action) => {
       state.isLoading = false;
@@ -59,6 +76,29 @@ const chatAdminSlice = createSlice({
       }
     });
     builder.addCase(kirimPesanAdmin.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(aktifkanSesi.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(aktifkanSesi.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const index = state.chatList.findIndex(
+        (chat) => chat.id_chat === action.payload.id_chat
+      );
+      if (index > -1) {
+        state.chatList[index] = action.payload;
+      }
+      if (
+        state.activeChat &&
+        state.activeChat.id_chat === action.payload.id_chat
+      ) {
+        state.activeChat = action.payload;
+      }
+    });
+    builder.addCase(aktifkanSesi.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

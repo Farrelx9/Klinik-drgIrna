@@ -13,6 +13,7 @@ import pasienReducer from "./redux-admin/reducer/pasienReducer";
 import konsultasiSlice from "./redux/reducers/konsultasiSlice";
 import pembayaranSlice from "./redux/reducers/pembayaranSlice";
 import chatSlice from "./redux/reducers/chatSlice";
+import chatAdminSlice from "./redux-admin/reducer/adminChatSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   konsultasi: konsultasiSlice,
   pembayaran: pembayaranSlice,
   chat: chatSlice,
+  chatAdmin: chatAdminSlice,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));

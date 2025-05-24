@@ -9,7 +9,11 @@ export const getChatListForAdmin = createAsyncThunk(
       const response = await apiClient.get(`/konsultasi/chat/admin/daftar`, {
         params: { page, limit },
       });
-      return response.data.data;
+
+      return {
+        data: response.data.data,
+        meta: response.data.meta,
+      };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Gagal mengambil daftar chat"
@@ -50,6 +54,22 @@ export const kirimPesanAdmin = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Gagal mengirim pesan"
+      );
+    }
+  }
+);
+
+export const aktifkanSesi = createAsyncThunk(
+  "chatAdmin/aktifkanSesi",
+  async (id_chat, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.patch(
+        `/konsultasi/admin/aktifkan/${id_chat}`
+      );
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Gagal mengaktifkan sesi"
       );
     }
   }
