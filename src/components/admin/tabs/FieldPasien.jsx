@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as rekamMedisActions from "../../../redux-admin/action/rekamMedisAction";
+import * as tindakanActions from "../../../redux-admin/action/jenisTindakanAction";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowLeft, Plus, Save } from "lucide-react";
-import jsPDF from "jspdf";
 
 export default function FieldPasien({ patient, onBack }) {
   const dispatch = useDispatch();
 
   // Ambil state dari Redux
   const rekamMedisState = useSelector((state) => state.rekamMedis || {});
+  const jenisTindakanState = useSelector((state) => state.jenisTindakan || {});
+
   const { patientRecords: reduxPatientRecords = [] } = rekamMedisState;
 
-  // State lokal
+  // State lokal form
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -28,27 +30,27 @@ export default function FieldPasien({ patient, onBack }) {
     tanggal: new Date().toISOString().split("T")[0],
   });
 
-  // Gunakan data dari Redux jika tersedia, fallback ke data pasien
+  const [searchTindakan, setSearchTindakan] = useState("");
+  const [selectedTindakan, setSelectedTindakan] = useState(null);
+
+  // Gunakan data pasien dari Redux atau fallback ke props
   const [patientRecords, setPatientRecords] = useState(
     reduxPatientRecords.length > 0 ? reduxPatientRecords : [patient]
   );
 
-  // Fetch riwayat rekam medis dari API
+  // Fetch riwayat rekam medis pasien saat mount
   useEffect(() => {
     const fetchPatientRecords = async () => {
       try {
         setLoading(true);
-
         const records = await dispatch(
           rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
         );
-
         if (records && records.length > 0) {
           setPatientRecords(records);
         } else {
-          setPatientRecords([patient]); // fallback
+          setPatientRecords([patient]);
         }
-
         setLoading(false);
       } catch (error) {
         console.error("Gagal mengambil riwayat rekam medis:", error);
@@ -61,6 +63,40 @@ export default function FieldPasien({ patient, onBack }) {
     fetchPatientRecords();
   }, [dispatch, patient]);
 
+  // Fetch jenis tindakan dari Redux action
+  useEffect(() => {
+    dispatch(tindakanActions.fetchJenisTindakan());
+  }, [dispatch]);
+
+  // Simpan daftar tindakan dari Redux ke state lokal
+  const [tindakanOptions, setTindakanOptions] = useState([]);
+
+  useEffect(() => {
+    if (jenisTindakanState.data && Array.isArray(jenisTindakanState.data)) {
+      setTindakanOptions(jenisTindakanState.data);
+    }
+  }, [jenisTindakanState.data]);
+
+  // Filter tindakan berdasarkan pencarian
+  const filteredTindakan = useMemo(() => {
+    if (!searchTindakan.trim()) return [];
+
+    const query = searchTindakan.toLowerCase();
+    return tindakanOptions
+      .filter((t) => t.nama_tindakan?.toLowerCase().includes(query))
+      .slice(0, 5); // Batasi hanya 5 sugest
+  }, [searchTindakan, tindakanOptions]);
+
+  // Handler saat pilih tindakan
+  const handlePilihTindakan = (tindakan) => {
+    setSelectedTindakan(tindakan);
+    setFormData({
+      ...formData,
+      tindakan: tindakan.nama_tindakan,
+    });
+    setSearchTindakan(""); // Reset input pencarian
+  };
+
   // Handle input form
   const handleChange = (e) => {
     setFormData({
@@ -72,6 +108,7 @@ export default function FieldPasien({ patient, onBack }) {
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.diagnosa || !formData.tindakan) {
       toast.error("Diagnosa dan Tindakan harus diisi");
       return;
@@ -79,7 +116,6 @@ export default function FieldPasien({ patient, onBack }) {
 
     try {
       if (editingRecord) {
-        // Update rekam medis
         await dispatch(
           rekamMedisActions.updateRekamMedis(
             editingRecord.id_rekam_medis,
@@ -88,12 +124,10 @@ export default function FieldPasien({ patient, onBack }) {
         );
         toast.success("Rekam medis berhasil diperbarui");
       } else {
-        // Tambah rekam medis baru
         await dispatch(rekamMedisActions.createRekamMedis(formData));
         toast.success("Rekam medis baru berhasil ditambahkan");
       }
 
-      // Refresh riwayat rekam medis
       const updatedRecords = await dispatch(
         rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
       );
@@ -116,6 +150,7 @@ export default function FieldPasien({ patient, onBack }) {
       dokter: "drg. Irna",
       tanggal: new Date().toISOString().split("T")[0],
     });
+    setSelectedTindakan(null);
     setEditingRecord(null);
     setShowForm(false);
   };
@@ -141,47 +176,46 @@ export default function FieldPasien({ patient, onBack }) {
     setShowForm(true);
   };
 
-  // Hapus record
-  const handleDelete = async (id_rekam_medis) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus rekam medis ini?")) {
-      try {
-        await dispatch(rekamMedisActions.deleteRekamMedis(id_rekam_medis));
-        toast.success("Rekam medis berhasil dihapus");
-
-        const updatedRecords = await dispatch(
-          rekamMedisActions.fetchRekamMedisByPatient(patient.id_pasien)
-        );
-
-        setPatientRecords(
-          updatedRecords ||
-            patientRecords.filter((r) => r.id_rekam_medis !== id_rekam_medis)
-        );
-      } catch (error) {
-        console.error("Gagal menghapus rekam medis:", error);
-        toast.error("Gagal menghapus rekam medis");
-      }
-    }
-  };
-
   // Export PDF
   const handleExportPDF = (record) => {
+    const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.setFontSize(12);
-    doc.text(`Nama Pasien: ${record.nama_pasien || "-"}`, 10, 10);
-    doc.text(`Keluhan: ${record.keluhan || "-"}`, 10, 20);
-    doc.text(`Diagnosa: ${record.diagnosa || "-"}`, 10, 30);
-    doc.text(`Tindakan: ${record.tindakan || "-"}`, 10, 40);
-    doc.text(`Resep Obat: ${record.resep_obat || "-"}`, 10, 50);
-    doc.text(`Dokter: ${record.dokter || "-"}`, 10, 60);
-    doc.text(
-      `Tanggal: ${
+
+    doc.setFontSize(18);
+    doc.text("Rekam Medis Pasien", 14, 20);
+    doc.setLineWidth(0.5);
+    doc.line(10, 25, 200, 25);
+
+    const tableColumn = ["Field", "Informasi"];
+    const tableRows = [
+      ["Nama Pasien", record.nama_pasien || "-"],
+      ["Keluhan", record.keluhan || "-"],
+      ["Diagnosa", record.diagnosa || "-"],
+      ["Tindakan", record.tindakan || "-"],
+      ["Resep Obat", record.resep_obat || "-"],
+      ["Dokter", record.dokter || "-"],
+      [
+        "Tanggal",
         record.tanggal
           ? new Date(record.tanggal).toLocaleDateString("id-ID")
-          : "-"
-      }`,
-      10,
-      70
-    );
+          : "-",
+      ],
+    ];
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      theme: "striped",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [30, 144, 255] },
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text("Dicetak pada: " + new Date().toLocaleString(), 14, finalY);
+    doc.text("Sistem Rekam Medis Klinik Gigi drg. Irna", 14, finalY + 5);
+
     doc.save(`rekam-medis-${record.id_rekam_medis || "pasien"}.pdf`);
   };
 
@@ -206,7 +240,6 @@ export default function FieldPasien({ patient, onBack }) {
             </p>
           </div>
         </div>
-
         <button
           onClick={() => {
             setShowForm(true);
@@ -228,121 +261,144 @@ export default function FieldPasien({ patient, onBack }) {
 
       {/* Form tambah/edit */}
       {showForm && (
-        <div className="p-4 border-b bg-gray-50">
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 border-b bg-gray-50 space-y-4"
+        >
           <h3 className="text-md font-semibold mb-3">
             {editingRecord ? "Edit Rekam Medis" : "Tambah Rekam Medis Baru"}
           </h3>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {/* Keluhan */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Keluhan
-              </label>
-              <textarea
-                name="keluhan"
-                value={formData.keluhan}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 border rounded"
-              ></textarea>
-            </div>
 
-            {/* Diagnosa */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Diagnosis
-              </label>
-              <textarea
-                name="diagnosa"
-                value={formData.diagnosa}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 border rounded"
-                required
-              ></textarea>
-            </div>
+          {/* Keluhan */}
+          <div className="mb-3">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Keluhan
+            </label>
+            <textarea
+              name="keluhan"
+              value={formData.keluhan}
+              onChange={handleChange}
+              rows="3"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
 
-            {/* Tindakan */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Tindakan
-              </label>
-              <input
-                name="tindakan"
-                value={formData.tindakan}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
+          {/* Diagnosa */}
+          <div className="mb-3">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Diagnosis
+            </label>
+            <textarea
+              name="diagnosa"
+              value={formData.diagnosa}
+              onChange={handleChange}
+              rows="3"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            ></textarea>
+          </div>
 
-            {/* Resep Obat */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Resep Obat
-              </label>
-              <textarea
-                name="resep_obat"
-                value={formData.resep_obat}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 border rounded"
-              ></textarea>
-            </div>
+          {/* Tindakan - Autocomplete */}
+          <div className="mb-3 relative">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Tindakan
+            </label>
+            <input
+              name="tindakan"
+              value={searchTindakan || selectedTindakan?.nama_tindakan || ""}
+              onChange={(e) => setSearchTindakan(e.target.value)}
+              placeholder="Cari tindakan..."
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
 
-            {/* Dokter */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Dokter
-              </label>
-              <input
-                name="dokter"
-                value={formData.dokter}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
+            {/* Dropdown hasil pencarian */}
+            {filteredTindakan.length > 0 && (
+              <ul className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg max-h-48 overflow-y-auto z-50">
+                {filteredTindakan.map((tindakan) => (
+                  <li
+                    key={tindakan.id_tindakan}
+                    onClick={() => handlePilihTindakan(tindakan)}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                  >
+                    {tindakan.nama_tindakan} - Rp{" "}
+                    {tindakan.harga.toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-            {/* Tanggal */}
-            <div className="mb-3">
-              <label className="block text-gray-700 text-sm font-bold mb-1">
-                Tanggal
-              </label>
-              <input
-                name="tanggal"
-                type="date"
-                value={formData.tanggal}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
+          {/* Tampilkan Harga Jika Ada Tindakan Terpilih */}
+          {selectedTindakan && (
+            <p className="text-sm text-gray-600">
+              Harga: Rp {selectedTindakan.harga.toLocaleString()}
+            </p>
+          )}
 
-            {/* Tombol aksi */}
-            <div className="col-span-2 flex justify-end space-x-2 mt-2">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded flex items-center gap-1"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-1"
-              >
-                <Save className="w-4 h-4" /> Simpan
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Resep Obat */}
+          <div className="mb-3">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Resep Obat
+            </label>
+            <textarea
+              name="resep_obat"
+              value={formData.resep_obat}
+              onChange={handleChange}
+              rows="3"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          {/* Dokter */}
+          <div className="mb-3">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Dokter
+            </label>
+            <input
+              name="dokter"
+              value={formData.dokter}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded bg-gray-100"
+              readOnly
+            />
+          </div>
+
+          {/* Tanggal */}
+          <div className="mb-3">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
+              Tanggal
+            </label>
+            <input
+              name="tanggal"
+              type="date"
+              value={formData.tanggal}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Tombol Aksi */}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Simpan Rekam Medis
+            </button>
+          </div>
+        </form>
       )}
 
-      {/* Daftar riwayat rekam medis */}
+      {/* Riwayat Rekam Medis */}
       {!loading && patientRecords.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-gray-500">
@@ -363,7 +419,7 @@ export default function FieldPasien({ patient, onBack }) {
               <div
                 key={record.id_rekam_medis || index}
                 className="border rounded-lg p-4 hover:bg-gray-50"
-              >
+              >s
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-semibold">
                     Tanggal:{" "}
@@ -392,7 +448,6 @@ export default function FieldPasien({ patient, onBack }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                   <div>
                     <p className="text-sm font-semibold text-gray-600">

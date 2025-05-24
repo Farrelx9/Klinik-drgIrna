@@ -16,6 +16,7 @@ import ChatTab from "../components/admin/tabs/Chat-Tab";
 import MedicalTab from "../components/admin/tabs/Medical-Tab";
 import JenisTindakan from "../components/admin/tabs/Jenis-Tindakan";
 import { useNavigate } from "react-router-dom";
+import Schedule from "../components/admin/tabs/Schedule";
 
 export default function DashboardAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -126,6 +127,9 @@ export default function DashboardAdmin() {
 
           {/* Jenis Tindakan Content */}
           {activeTab === "medical" && <MedicalTab />}
+
+          {/* Jenis Tindakan Content */}
+          {activeTab === "jadwaldokter" && <Schedule />}
         </main>
       </div>
     </div>

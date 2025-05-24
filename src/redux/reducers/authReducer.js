@@ -23,12 +23,24 @@ import {
   FETCH_BOOKED_APPOINTMENTS_FAILURE,
 } from "../types/authTypes";
 
+const userFromStorage = localStorage.getItem("user");
+let userInitialState = null;
+
+// Safely parse user from localStorage, avoiding "undefined" string issue
+if (userFromStorage && userFromStorage !== "undefined") {
+  try {
+    userInitialState = JSON.parse(userFromStorage);
+  } catch (e) {
+    console.error("Failed to parse user from localStorage", e);
+    // Optionally clear invalid data from localStorage
+    // localStorage.removeItem("user");
+  }
+}
+
 const initialState = {
   loading: false,
   error: null,
-  user: localStorage.getItem("user")
-    ? JSON.parse(localStorage.getItem("user"))
-    : null,
+  user: userInitialState, // Gunakan nilai user yang sudah di-parse dengan aman
   isAuthenticated: !!localStorage.getItem("token"),
   token: localStorage.getItem("token"),
   bookedAppointments: [],
@@ -53,7 +65,7 @@ const authReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        user: action.payload.user,
+        user: action.payload.user, // Pastikan payload login pasien memang punya user object
         token: action.payload.token,
         isAuthenticated: true,
         error: null,
@@ -76,11 +88,15 @@ const authReducer = (state = initialState, action) => {
         isAuthenticated: false,
       };
     case LOGOUT:
+      // Perhatikan: LOGOUT di authAdminActions juga menghapus 'token' dan 'user'
+      // Ini bisa menyebabkan inkonsistensi jika kedua reducer aktif
+      localStorage.removeItem("token");
+      localStorage.removeItem("user"); // Hapus juga user dari pasien localStorage
       return {
-        ...initialState,
-        user: null,
-        token: null,
-        isAuthenticated: false,
+        ...initialState, // Reset ke initial state yang bersih
+        user: null, // Pastikan user null setelah logout
+        token: null, // Pastikan token null setelah logout
+        isAuthenticated: false, // Pastikan false setelah logout
       };
     case FETCH_PROFILE_REQUEST:
       return {

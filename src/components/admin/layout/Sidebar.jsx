@@ -130,8 +130,15 @@ export default function Sidebar({
           <nav className="space-y-1">
             <a
               href="#"
-              className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-              onClick={(e) => e.preventDefault()}
+              className={`flex items-center space-x-2 p-2 rounded-md ${
+                activeTab === "jadwaldokter"
+                  ? "bg-blue-500 text-white"
+                  : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange("jadwaldokter");
+              }}
             >
               <CalendarDays className="h-5 w-5" />
               {isSidebarOpen && <span>Jadwal Dokter</span>}
@@ -150,14 +157,6 @@ export default function Sidebar({
             >
               <ScrollText className="h-5 w-5" />
               {isSidebarOpen && <span>Jenis Tindakan</span>}
-            </a>
-            <a
-              href="#"
-              className="flex items-center space-x-2 p-2 rounded-md text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-              onClick={(e) => e.preventDefault()}
-            >
-              <StarIcon className="h-5 w-5" />
-              {isSidebarOpen && <span>Review</span>}
             </a>
           </nav>
         </div>

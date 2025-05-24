@@ -2,6 +2,7 @@ import {
   LOGIN_ROLE_REQUEST,
   LOGIN_ROLE_SUCCESS,
   LOGIN_ROLE_FAILURE,
+  LOGOUT,
 } from "../types/authAdminTypes";
 import axios from "axios";
 
@@ -40,9 +41,11 @@ export const loginRole = (email, password) => async (dispatch) => {
     const errorMessage =
       err.response?.data?.message || err.message || "Login gagal";
     dispatch(loginRoleFailure(errorMessage));
+    localStorage.removeItem("token");
   }
 };
 
 export const logout = () => (dispatch) => {
+  localStorage.removeItem("token");
   dispatch({ type: LOGOUT });
 };

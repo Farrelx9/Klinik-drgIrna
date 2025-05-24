@@ -1,7 +1,7 @@
 // src/pages/admin/konsultasi/ChatTab.jsx
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, User } from "lucide-react";
+import { ChevronLeft, User, Lock } from "lucide-react";
 import {
   getChatListForAdmin,
   getChatDetail,
@@ -17,29 +17,31 @@ export default function ChatTab({ isMobile }) {
   const { chatList, activeChat, isLoading, error, meta } = useSelector(
     (state) => state.chatAdmin
   );
+  const userRole = useSelector((state) => state.authAdmin.role);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [pesanInput, setPesanInput] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(meta.totalPages || 1);
 
-  // Load list chat saat komponen mount atau page berubah
   useEffect(() => {
-    dispatch(getChatListForAdmin({ page, limit: 5 }));
-  }, [dispatch, page]);
+    if (userRole !== "dokter") return;
 
-  // Update totalPages dari meta
+    dispatch(getChatListForAdmin({ page, limit: 5 }));
+  }, [dispatch, page, userRole]);
+
   useEffect(() => {
+    if (userRole !== "dokter") return;
     if (meta && meta.totalPages) {
       setTotalPages(meta.totalPages);
     }
-  }, [meta]);
+  }, [meta, userRole]);
 
-  // Load detail chat saat chat dipilih
   useEffect(() => {
+    if (userRole !== "dokter") return;
     if (selectedChatId) {
       dispatch(getChatDetail(selectedChatId));
     }
-  }, [selectedChatId, dispatch]);
+  }, [selectedChatId, dispatch, userRole]);
 
   const handleChatSelect = (chat) => {
     setSelectedChatId(chat.id_chat);
@@ -67,7 +69,7 @@ export default function ChatTab({ isMobile }) {
     )
       .unwrap()
       .then(() => {
-        setPesanInput(""); // Reset input
+        setPesanInput("");
         toast.success("Pesan berhasil dikirim");
       })
       .catch((err) => {
@@ -84,7 +86,7 @@ export default function ChatTab({ isMobile }) {
     dispatch(aktifkanSesi(activeChat.id_chat))
       .unwrap()
       .then(() => {
-        dispatch(getChatDetail(activeChat.id_chat)); // Refresh detail chat
+        dispatch(getChatDetail(activeChat.id_chat));
         toast.success("Sesi berhasil diaktifkan");
       })
       .catch((err) => {
@@ -102,7 +104,7 @@ export default function ChatTab({ isMobile }) {
       dispatch(akhiriSesiAdmin(activeChat.id_chat))
         .unwrap()
         .then(() => {
-          dispatch(getChatDetail(activeChat.id_chat)); // Refresh detail chat
+          dispatch(getChatDetail(activeChat.id_chat));
           toast.success("Sesi berhasil diakhiri");
         })
         .catch((err) => {
@@ -110,6 +112,22 @@ export default function ChatTab({ isMobile }) {
         });
     }
   };
+
+  if (userRole !== "dokter") {
+    return (
+      <div className="flex items-center justify-center h-full bg-white rounded-lg shadow p-6">
+        <div className="text-center">
+          <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Akses Dibatasi
+          </h2>
+          <p className="text-gray-600">
+            Halaman ini hanya dapat diakses oleh pengguna dengan peran Dokter.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

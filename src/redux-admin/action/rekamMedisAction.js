@@ -91,6 +91,7 @@ export const createRekamMedis = (formData) => async (dispatch) => {
         alamat_pasien: response.data.alamat_pasien || "-",
         jenis_kelamin_pasien: response.data.jenis_kelamin_pasien || "-",
         tanggal_lahir_pasien: response.data.tanggal_lahir_pasien || null,
+        jenisTindakan: response.data.jenisTindakan || null, // Tambahkan ini
       },
     });
 

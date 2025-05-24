@@ -25,15 +25,6 @@ export default function Beranda() {
               <p className="text-xl mb-6">
                 Perawatan terbaik untuk kesehatan gigi dan mulut Anda
               </p>
-              <a
-                href="https://wa.me/6282135920275?text=Halo%20Klinik%20drg.%20Irna%2C%20saya%20ingin%20konsultasi"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <button className="bg-white text-[#1B56FD] px-6 py-2 rounded-full shadow-md hover:bg-gray-200 transition">
-                  Hubungi Kami!
-                </button>
-              </a>
             </div>
             <div className="md:w-1/2 flex justify-center">
               <img
@@ -68,17 +59,10 @@ export default function Beranda() {
                 link="/list-jadwal"
               />
               <ServiceCard
-                title="Datar Chat"
+                title="Daftar Chat"
                 description="Akses chat dengan dokter setelah melakukan pembayaran disini!"
                 icon={<MessageCircleCodeIcon size={32} />}
                 link="/konsultasi"
-              />
-              {/* Pengajuan Rekam Medis */}
-              <ServiceCard
-                title="Pengajuan Rekam Medis"
-                description="Ajukan permohonan rekam medis untuk keperluan Anda"
-                icon={<ClipboardPlus size={32} />}
-                link="/pengajuan-rekam-medis"
               />
             </div>
           </div>
@@ -343,9 +327,15 @@ export default function Beranda() {
             <p className="mt-2">
               Hubungi kami untuk konsultasi dan perawatan gigi terbaik
             </p>
-            <button className="mt-4 bg-white text-[#1B56FD] px-6 py-2 rounded-full shadow-md hover:bg-gray-200 transition">
-              Hubungi Kami
-            </button>
+            <a
+              href="https://wa.me/6281288856100?text=Halo%20Klinik%20drg.%20Irna,%2C%20saya%20ingin%20bertanya!"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button className="mt-4 bg-white text-[#1B56FD] px-6 py-2 rounded-full shadow-md hover:bg-gray-200 transition">
+                Hubungi Kami
+              </button>
+            </a>
           </div>
         </div>
         <Footer />
