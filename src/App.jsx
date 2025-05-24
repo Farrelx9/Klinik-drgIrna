@@ -23,7 +23,6 @@ import LoginAdmin from "./admin/LoginAdmin";
 import "react-toastify/dist/ReactToastify.css";
 import JadwalKonsultasi from "./pages/JadwalKonsultasi";
 import Pembayaran from "./pages/Pembayaran";
-import ChatHistory from "./pages/ChatHistory";
 import PembayaranSuksesHandler from "./pages/PembayaranSuksesHandler";
 
 function App() {
@@ -36,6 +35,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/janjiTemu" element={<JanjiTemu />} />
+          <Route path="/konsultasi" element={<Konsultasi />} />
           <Route path="/konsultasi/:id" element={<Konsultasi />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/forgotPassword" element={<ForgotPassword />} />
@@ -45,7 +45,6 @@ function App() {
           <Route path="/notifikasi" element={<Notifikasi />} />
           <Route path="/jadwal-konsultasi" element={<JadwalKonsultasi />} />
           <Route path="/pembayaran" element={<Pembayaran />} />
-          <Route path="/chat-history" element={<ChatHistory />} />
           <Route
             path="/pembayaran-sukses"
             element={<PembayaranSuksesHandler />}

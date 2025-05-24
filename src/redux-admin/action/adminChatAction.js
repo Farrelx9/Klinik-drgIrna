@@ -41,15 +41,14 @@ export const getChatDetail = createAsyncThunk(
 
 // Kirim pesan baru dari admin
 export const kirimPesanAdmin = createAsyncThunk(
-  "chatAdmin/kirimPesanAdmin",
-  async ({ isi, pengirim, id_chat }, { rejectWithValue }) => {
+  "chat/kirimPesanAdmin",
+  async ({ isi, id_chat }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post("/konsultasi/chat/kirim", {
         isi,
-        pengirim,
+        pengirim: "admin",
         id_chat,
       });
-
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -70,6 +69,23 @@ export const aktifkanSesi = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Gagal mengaktifkan sesi"
+      );
+    }
+  }
+);
+
+// Akhiri sesi oleh admin
+export const akhiriSesiAdmin = createAsyncThunk(
+  "chatAdmin/akhiriSesi",
+  async (id_chat, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.put(
+        `/konsultasi/chat/selesaikan/${id_chat}`
+      );
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Gagal mengakhiri sesi"
       );
     }
   }

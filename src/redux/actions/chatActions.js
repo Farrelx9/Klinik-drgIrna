@@ -1,55 +1,58 @@
 import apiClient from "../../config/apiConfig";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-// Ambil riwayat chat
-export const getRiwayatChat = createAsyncThunk(
-  "chat/getRiwayatChat",
-  async (id_chat, { rejectWithValue }) => {
+// getChatListForUser
+export const getChatListForUser = createAsyncThunk(
+  "chat/getChatListForUser",
+  async ({ id_pasien, page, limit }, { rejectWithValue }) => {
     try {
       const response = await apiClient.get(
-        `/konsultasi/chat/riwayat/${id_chat}`
+        `/konsultasi/chat/pasien/${id_pasien}`,
+        {
+          params: { page, limit },
+        }
       );
-      return response.data.data;
+
+      return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Gagal mengambil riwayat chat"
+        error.response?.data?.message || "Gagal mengambil daftar chat"
       );
     }
   }
 );
 
-// Kirim pesan baru
-export const kirimPesan = createAsyncThunk(
-  "chat/kirimPesan",
-  async ({ isi, pengirim, id_chat }, { rejectWithValue }) => {
+// getChatDetailForUser
+export const getChatDetailForUser = createAsyncThunk(
+  "chat/getChatDetailForUser",
+  async (id_chat, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get(
+        `/konsultasi/chat/admin/detail/${id_chat}`
+      );
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Gagal mengambil detail chat"
+      );
+    }
+  }
+);
+
+// kirimPesanPasien
+export const kirimPesanPasien = createAsyncThunk(
+  "chat/kirimPesanPasien",
+  async ({ isi, id_chat }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post("/konsultasi/chat/kirim", {
         isi,
-        pengirim,
+        pengirim: "pasien",
         id_chat,
       });
-
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Gagal mengirim pesan"
-      );
-    }
-  }
-);
-
-// Cek sesi aktif pasien
-export const cekSesiAktifByPasien = createAsyncThunk(
-  "chat/cekSesiAktifByPasien",
-  async (id_pasien, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.get(
-        `/konsultasi/chat/aktif/${id_pasien}`
-      );
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Tidak ada sesi aktif"
       );
     }
   }

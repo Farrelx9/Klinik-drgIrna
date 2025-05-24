@@ -4,6 +4,7 @@ import {
   getChatDetail,
   kirimPesanAdmin,
   aktifkanSesi,
+  akhiriSesiAdmin,
 } from "../action/adminChatAction";
 
 const initialState = {
@@ -99,6 +100,34 @@ const chatAdminSlice = createSlice({
       }
     });
     builder.addCase(aktifkanSesi.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(akhiriSesiAdmin.pending, (state) => {
+      state.isLoading = true;
+    });
+
+    builder.addCase(akhiriSesiAdmin.fulfilled, (state, action) => {
+      state.isLoading = false;
+
+      // Update daftar chat
+      const index = state.chatList.findIndex(
+        (chat) => chat.id_chat === action.payload.id_chat
+      );
+      if (index > -1) {
+        state.chatList[index].status = "selesai";
+      }
+
+      // Update activeChat jika cocok
+      if (
+        state.activeChat &&
+        state.activeChat.id_chat === action.payload.id_chat
+      ) {
+        state.activeChat.status = "selesai";
+      }
+    });
+
+    builder.addCase(akhiriSesiAdmin.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

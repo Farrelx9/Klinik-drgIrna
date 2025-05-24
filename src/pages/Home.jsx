@@ -65,13 +65,13 @@ export default function Beranda() {
                 title="Janji Temu"
                 description="Atur jadwal konsultasi dokter secara mudah dan cepat"
                 icon={<CalendarClock size={32} />}
-                link="/jadwal-konsultasi"
+                link="/list-jadwal"
               />
               <ServiceCard
                 title="Datar Chat"
                 description="Akses chat dengan dokter setelah melakukan pembayaran disini!"
                 icon={<MessageCircleCodeIcon size={32} />}
-                link="/chat-history"
+                link="/konsultasi"
               />
               {/* Pengajuan Rekam Medis */}
               <ServiceCard

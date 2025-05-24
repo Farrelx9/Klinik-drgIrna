@@ -139,11 +139,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Google Sign In  */}
-        <button className="bg-white border border-blue-500 text-blue-500 p-2 rounded w-full mb-4">
-          Sign in with Google
-        </button>
-
         {/* Link Forgot Password */}
         <div>
           <a

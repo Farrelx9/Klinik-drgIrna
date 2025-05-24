@@ -1,14 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  getRiwayatChat,
-  kirimPesan,
-  cekSesiAktifByPasien,
+  getChatListForUser,
+  getChatDetailForUser,
+  kirimPesanPasien,
 } from "../actions/chatActions";
 
 const initialState = {
-  messages: [],
-  sessionStatus: null,
-  activeChatId: null,
+  chatList: [],
+  activeChat: null,
+  meta: {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
   isLoading: false,
   error: null,
 };
@@ -23,49 +29,59 @@ const chatSlice = createSlice({
     },
   },
   extraReducers(builder) {
-    builder.addCase(getRiwayatChat.pending, (state) => {
+    builder.addCase(getChatListForUser.pending, (state) => {
       state.isLoading = true;
       state.error = null;
     });
-    builder.addCase(getRiwayatChat.fulfilled, (state, action) => {
+    builder.addCase(getChatListForUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.messages = Array.isArray(action.payload) ? action.payload : [];
+
+      // Pastikan action.payload.data dan meta ada
+      state.chatList = Array.isArray(action.payload.data)
+        ? action.payload.data
+        : [];
+
+      state.meta = {
+        currentPage: action.payload.meta.currentPage || 1,
+        totalPages: action.payload.meta.totalPages || 1,
+        totalItems: action.payload.meta.totalItems || 0,
+        hasNextPage: action.payload.meta.hasNextPage || false,
+        hasPrevPage: action.payload.meta.hasPrevPage || false,
+      };
     });
-    builder.addCase(getRiwayatChat.rejected, (state, action) => {
+    builder.addCase(getChatListForUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
 
-    builder.addCase(kirimPesan.pending, (state) => {
+    builder.addCase(getChatDetailForUser.pending, (state) => {
       state.isLoading = true;
+      state.error = null;
     });
-    builder.addCase(kirimPesan.fulfilled, (state, action) => {
+    builder.addCase(getChatDetailForUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.messages.push(action.payload);
+      state.activeChat = action.payload;
     });
-    builder.addCase(kirimPesan.rejected, (state, action) => {
+    builder.addCase(getChatDetailForUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
 
-    builder.addCase(cekSesiAktifByPasien.pending, (state) => {
+    builder.addCase(kirimPesanPasien.pending, (state) => {
       state.isLoading = true;
-      state.error = null;
     });
-    builder.addCase(cekSesiAktifByPasien.fulfilled, (state, action) => {
+    builder.addCase(kirimPesanPasien.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.sessionStatus = action.payload.status;
-      state.activeChatId = action.payload.id_chat;
+      if (state.activeChat && Array.isArray(state.activeChat.messages)) {
+        state.activeChat.messages.push(action.payload);
+      }
     });
-    builder.addCase(cekSesiAktifByPasien.rejected, (state, action) => {
+    builder.addCase(kirimPesanPasien.rejected, (state, action) => {
       state.isLoading = false;
-      state.sessionStatus = "none";
       state.error = action.payload;
     });
   },
 });
 
-export default chatSlice.reducer;
-
-// Export reducers
 export const { resetChat, clearError } = chatSlice.actions;
+export default chatSlice.reducer;
