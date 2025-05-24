@@ -127,9 +127,7 @@ export const fetchRekamMedisByPatient = (id_pasien) => async (dispatch) => {
   dispatch({ type: FETCH_REKAM_MEDIS_BY_PASIEN_REQUEST });
 
   try {
-    const response = await apiClient.get(
-      `/rekamMedis/getByPasien/${id_pasien}`
-    );
+    const response = await apiClient.get(`/rekamMedis/${id_pasien}`);
 
     // Pastikan format respons valid
     if (!response.data || !Array.isArray(response.data)) {
