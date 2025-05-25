@@ -74,7 +74,12 @@ export default function Login() {
     try {
       const success = await dispatch(login(formData.email, formData.password));
       if (success) {
-        toast.success("Login berhasil!", { autoClose: 3000 });
+        toast.success(
+          "Login berhasil!, Jangan lupa lengkapi profil kamu yaa!",
+          {
+            autoClose: 3000,
+          }
+        );
         setTimeout(() => navigate("/"), 1500);
       }
     } catch (err) {

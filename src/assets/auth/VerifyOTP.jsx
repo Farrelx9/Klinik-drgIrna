@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { verifyOtp, resendOtp } from "../../redux/actions/authActions";
 import { useNavigate } from "react-router-dom";
 import LOGO from "../images/LogoKlinik.png";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function VerifyOTP() {
   const dispatch = useDispatch();
@@ -29,6 +31,7 @@ export default function VerifyOTP() {
     e.preventDefault();
     const success = await dispatch(verifyOtp(userId, otp));
     if (success) {
+      toast.success("OTP berhasil diverifikasi!, kamu sekarang bisa login !!!");
       navigate("/login");
     }
   };

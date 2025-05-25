@@ -96,8 +96,9 @@ export default function Beranda() {
                   Dokter Gigi Profesional
                 </h3>
                 <p className="text-white/90 text-center">
-                  Tim kami terdiri dari dokter gigi, perawat gigi, asisten, dan
-                  staf administrasi yang bekerja bersama.
+                  Klinik kami dikelola oleh tim yang solid, terdiri dari drg.
+                  Irna sebagai dokter gigi utama dan satu admin, siap memberikan
+                  pelayanan terbaik untuk Anda.
                 </p>
               </div>
               <div className="bg-[#1B56FD] p-6 rounded-lg shadow-lg text-white hover:shadow-xl transition-shadow">
@@ -203,30 +204,6 @@ export default function Beranda() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Kawat Gigi</h3>
-                <p className="text-gray-600">
-                  Perawatan ortodontik untuk meluruskan gigi dan memperbaiki
-                  gigitan.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="text-[#1B56FD] text-3xl mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-10 h-10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
                       d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
                     />
                   </svg>
@@ -308,9 +285,10 @@ export default function Beranda() {
                 <p className="text-gray-700 leading-relaxed text-center md:text-left">
                   Klinik drg. Irna adalah klinik gigi profesional yang
                   berkomitmen untuk memberikan layanan terbaik dalam menjaga
-                  kesehatan gigi dan mulut Anda. Dengan tim dokter gigi yang
-                  berpengalaman, fasilitas lengkap, dan lingkungan yang nyaman,
-                  kami hadir sebagai solusi terpercaya untuk semua kebutuhan
+                  kesehatan gigi dan mulut Anda. Klinik kami dikelola langsung
+                  oleh drg. Irna sebagai dokter gigi utama, dibantu oleh satu
+                  admin, dengan fasilitas lengkap, dan lingkungan yang nyaman.
+                  Kami hadir sebagai solusi terpercaya untuk semua kebutuhan
                   perawatan gigi Anda dan keluarga.
                 </p>
               </div>
@@ -328,7 +306,7 @@ export default function Beranda() {
               Hubungi kami untuk konsultasi dan perawatan gigi terbaik
             </p>
             <a
-              href="https://wa.me/6281288856100?text=Halo%20Klinik%20drg.%20Irna,%2C%20saya%20ingin%20bertanya!"
+              href="https://wa.me/6281288856100?text=Halo%20Klinik%20drg.%20Irna,%20saya%20ingin%20bertanya!"
               target="_blank"
               rel="noopener noreferrer"
             >

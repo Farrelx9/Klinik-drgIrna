@@ -106,7 +106,7 @@ export default function Navbar() {
 
               {/* Navigation Links */}
               <div className="hidden md:flex items-center space-x-8 font-poppins">
-                <a
+                {/* <a
                   href="#"
                   className="text-gray-700 hover:text-[#1B56FD] transition-colors font-medium"
                 >
@@ -123,7 +123,7 @@ export default function Navbar() {
                   className="text-gray-700 hover:text-[#1B56FD] transition-colors font-medium"
                 >
                   Testimoni
-                </a>
+                </a> */}
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-4">
                     <button
@@ -210,7 +210,7 @@ export default function Navbar() {
               }`}
             >
               <div className="py-4 space-y-4 font-poppins">
-                <a
+                {/* <a
                   href="#"
                   className="block text-gray-700 hover:text-[#1B56FD] transition-colors font-medium"
                 >
@@ -227,7 +227,7 @@ export default function Navbar() {
                   className="block text-gray-700 hover:text-[#1B56FD] transition-colors font-medium"
                 >
                   Testimoni
-                </a>
+                </a> */}
                 {isAuthenticated ? (
                   <div className="space-y-4">
                     <button
