@@ -11,7 +11,7 @@ import {
 
 export default function MobileMenu({ activeTab, handleTabChange }) {
   return (
-    <div className="p-4">
+    <div className="p-4 font-poppins">
       <div className="mb-6">
         <div className="text-xs font-semibold text-gray-400 mb-2">
           MENU UTAMA
@@ -99,6 +99,21 @@ export default function MobileMenu({ activeTab, handleTabChange }) {
           ADMINISTRASI
         </div>
         <nav className="space-y-1">
+          <a
+            href="#"
+            className={`flex items-center space-x-2 p-3 rounded-md ${
+              activeTab === "jadwaldokter"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleTabChange("jadwaldokter");
+            }}
+          >
+            <ScrollText className="h-5 w-5" />
+            <span>Jadwal Dokter</span>
+          </a>
           <a
             href="#"
             className={`flex items-center space-x-2 p-3 rounded-md ${

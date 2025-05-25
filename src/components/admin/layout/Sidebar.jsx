@@ -25,7 +25,7 @@ export default function Sidebar({
         isSidebarOpen ? "w-64" : "w-20"
       } transition-all duration-300 ease-in-out`}
     >
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b font-poppins">
         <div className="flex items-center space-x-2">
           <Tooth className="h-8 w-8 text-blue-500" />
           {isSidebarOpen && (

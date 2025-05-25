@@ -12,7 +12,7 @@ export default function MobileHeader({
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden bg-white shadow-sm p-4 flex justify-between items-center">
+      <div className="md:hidden bg-white shadow-sm p-4 flex justify-between items-center font-poppins">
         <div className="flex items-center space-x-2">
           <Tooth className="h-6 w-6 text-blue-500" />
           <span className="text-lg font-bold">Klinik Drg Irna</span>

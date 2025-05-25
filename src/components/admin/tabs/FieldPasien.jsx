@@ -220,7 +220,7 @@ export default function FieldPasien({ patient, onBack }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow overflow-hidden font-poppins">
       {/* Header */}
       <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-blue-50">
         <div className="flex items-center gap-3">

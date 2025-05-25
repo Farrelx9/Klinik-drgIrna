@@ -149,7 +149,7 @@ export default function MedicalTab() {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden font-poppins">
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-semibold">Rekam Medis Pasien</h2>

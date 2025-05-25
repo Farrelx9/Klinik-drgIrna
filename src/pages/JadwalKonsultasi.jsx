@@ -291,6 +291,7 @@ const JadwalKonsultasiPage = () => {
               <p className="mb-8 text-gray-600 leading-relaxed">
                 Apakah Anda yakin ingin memilih jadwal ini? Pastikan jadwal yang
                 dipilih sesuai dengan waktu yang Anda inginkan.
+                dan konsultasi ini akan dikenakan biaya sebesar Rp. 150.000
               </p>
 
               <div className="flex justify-end gap-4">

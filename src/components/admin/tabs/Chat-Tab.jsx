@@ -115,7 +115,7 @@ export default function ChatTab({ isMobile }) {
 
   if (userRole !== "dokter") {
     return (
-      <div className="flex items-center justify-center h-full bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-center h-full bg-white rounded-lg shadow p-6 font-poppins">
         <div className="text-center">
           <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">

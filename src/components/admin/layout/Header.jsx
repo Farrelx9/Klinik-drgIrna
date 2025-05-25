@@ -54,7 +54,7 @@ export default function Header({
   };
 
   return (
-    <header className="hidden md:flex bg-white shadow-sm p-4 justify-between items-center">
+    <header className="hidden md:flex bg-white shadow-sm p-4 justify-between items-center font-poppins">
       <h1 className="text-xl font-semibold">
         {activeTab === "dashboard" && "Dashboard Admin"}
         {activeTab === "appointments" && "Manajemen Janji Temu"}
@@ -63,7 +63,12 @@ export default function Header({
         {activeTab === "medical" && "Rekam Medis"}
       </h1>
       <div className="flex items-center space-x-4">
-        <div className="relative profile-menu-container">
+        <div className="flex items-center relative profile-menu-container gap-4">
+          {/* Notification Bell */}
+          <button className="p-1 rounded-full text-gray-600 hover:bg-gray-200 focus:outline-none">
+            <Bell className="h-5 w-5" />
+          </button>
+
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center space-x-2 focus:outline-none"

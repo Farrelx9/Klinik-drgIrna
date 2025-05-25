@@ -28,12 +28,25 @@ export default function JenisTindakan() {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
+  // State untuk debounced search query
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
   // Handle input form
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Handle search input change
+  const handleSearchInputChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    // If the search query changes and we are not on page 1, reset to page 1
+    if (currentPage !== 1) {
+      dispatch(actions.setPage(1));
+    }
   };
 
   // Submit tambah atau edit
@@ -74,31 +87,33 @@ export default function JenisTindakan() {
     }
   };
 
-  // Fetch data saat halaman pertama kali dimuat atau halaman berubah
-  useEffect(() => {
-    dispatch(actions.fetchJenisTindakan(currentPage, 5, searchQuery));
-  }, [dispatch, currentPage]);
-
-  // Debounce pencarian
+  // Effect untuk debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
-      dispatch(actions.fetchJenisTindakan(1, 5, searchQuery));
-    }, 500);
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // Debounce delay
+
     return () => clearTimeout(timer);
-  }, [dispatch, searchQuery]);
+  }, [searchQuery]); // Hanya bergantung pada searchQuery
+
+  // Effect untuk fetching data berdasarkan currentPage dan debouncedSearchQuery
+  useEffect(() => {
+    // Fetch data whenever currentPage or debouncedSearchQuery changes
+    dispatch(actions.fetchJenisTindakan(currentPage, 5, debouncedSearchQuery));
+  }, [dispatch, currentPage, debouncedSearchQuery]); // Bergantung pada currentPage dan debouncedSearchQuery
 
   // Fungsi pagination
   const handleNext = () => {
     if (currentPage < totalPages) {
       dispatch(actions.setPage(currentPage + 1));
-      dispatch(actions.fetchJenisTindakan(currentPage + 1, 5, searchQuery));
+      // Fetch data is triggered by the useEffect when currentPage changes
     }
   };
 
   const handlePrev = () => {
     if (currentPage > 1) {
       dispatch(actions.setPage(currentPage - 1));
-      dispatch(actions.fetchJenisTindakan(currentPage - 1, 5, searchQuery));
+      // Fetch data is triggered by the useEffect when currentPage changes
     }
   };
 
@@ -124,7 +139,7 @@ export default function JenisTindakan() {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden font-poppins">
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-semibold">Jenis Tindakan</h2>
@@ -133,7 +148,7 @@ export default function JenisTindakan() {
               type="text"
               placeholder="Cari tindakan..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchInputChange}
               className="border rounded-md px-3 py-1 text-sm w-full sm:w-auto"
             />
             <button
@@ -316,7 +331,7 @@ export default function JenisTindakan() {
           <div className="flex space-x-2">
             <button
               onClick={handlePrev}
-              disabled={currentPage <= 1}
+              disabled={currentPage <= 1 || loading}
               className="px-3 py-1 border rounded disabled:opacity-50"
             >
               Sebelumnya
@@ -326,7 +341,7 @@ export default function JenisTindakan() {
             </span>
             <button
               onClick={handleNext}
-              disabled={currentPage >= totalPages}
+              disabled={currentPage >= totalPages || loading}
               className="px-3 py-1 border rounded disabled:opacity-50"
             >
               Selanjutnya
