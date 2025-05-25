@@ -419,7 +419,7 @@ export default function FieldPasien({ patient, onBack }) {
               <div
                 key={record.id_rekam_medis || index}
                 className="border rounded-lg p-4 hover:bg-gray-50"
-              >s
+              >
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-semibold">
                     Tanggal:{" "}

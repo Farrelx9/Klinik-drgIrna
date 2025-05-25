@@ -1,92 +1,107 @@
-import React, { useState } from "react";
-import { Plus } from "lucide-react"; // Keep Plus icon
-
-// Import react-datepicker
+import React, { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import DatePicker, { registerLocale } from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // Import the stylesheet
-
-// Import Indonesian locale from date-fns
+import "react-datepicker/dist/react-datepicker.css";
 import { id } from "date-fns/locale";
-
-// Register the Indonesian locale
 registerLocale("id", id);
+import apiClient from "../../../config/apiConfig";
 
 export default function Schedule() {
+  const [jadwalList, setJadwalList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
 
-  // Dummy data for schedule entries
-  const dummySchedule = [
-    { time: "08:00", description: "Pemeriksaan rutin Pasien A" },
-    { time: "09:00", description: "Scaling Pasien B" },
-    { time: "10:30", description: "Tambal Gigi Pasien C" },
-    { time: "13:00", description: "Konsultasi Pasien D" },
-    { time: "14:30", description: "Pencabutan Gigi Pasien E" },
-  ];
-
-  // Helper function to format date for display (DatePicker often handles this, but keep for flexibility)
-  const formatDate = (date) => {
-    const options = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return date.toLocaleDateString("id-ID", options);
+  const fetchJadwal = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await apiClient.get("/jadwal", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }); // Sesuaikan endpoint
+      setJadwalList(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Gagal mengambil jadwal:", err);
+      setLoading(false);
+    }
   };
+
+  const tambahJadwal = async () => {
+    const payload = {
+      waktu: new Date().toISOString(), // contoh waktu sekarang
+      deskripsi: "Janji temu baru",
+      pasien: "Pasien Baru",
+    };
+
+    try {
+      const token = localStorage.getItem("token");
+      await apiClient.post("/jadwal/buat", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }); // endpoint POST
+      fetchJadwal(); // refresh data
+    } catch (err) {
+      alert("Gagal menambahkan jadwal.");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchJadwal();
+  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      {/* Header Jadwal */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-4">
         <h2 className="text-xl font-semibold mb-2 sm:mb-0">Jadwal Dokter</h2>
-        {/* Tombol Tambah Janji Temu (Dummy) */}
         <button
+          onClick={tambahJadwal}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2"
-          onClick={() => alert("Fitur tambah janji temu akan datang!")}
         >
           <Plus className="w-4 h-4" />
           Tambah Janji Temu
         </button>
       </div>
 
-      {/* Kontrol Navigasi Tanggal - Diganti Date Picker */}
+      {/* Date Picker */}
       <div className="flex justify-center mb-4">
         <DatePicker
           selected={currentDate}
           onChange={(date) => setCurrentDate(date)}
+          locale="id"
           dateFormat="EEEE, dd MMMM yyyy"
-          locale="id" // Set locale to Indonesian
-          className="border rounded-md px-3 py-2 text-gray-700 leading-tight focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="border rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring focus:border-blue-500"
         />
       </div>
 
-      {/* Daftar Jadwal Harian */}
-      <div className="space-y-4">
-        {dummySchedule.length > 0 ? (
-          dummySchedule.map((entry, index) => (
+      {/* Jadwal List */}
+      {loading ? (
+        <p className="text-center py-8">Memuat jadwal...</p>
+      ) : jadwalList.length === 0 ? (
+        <p className="text-center py-8 text-gray-500">Tidak ada jadwal.</p>
+      ) : (
+        <div className="space-y-4">
+          {jadwalList.map((j, index) => (
             <div
-              key={index}
+              key={j.id || index}
               className="flex items-center border rounded-md p-4 shadow-sm hover:bg-gray-50"
             >
               <div className="text-sm font-semibold text-gray-700 w-20 flex-shrink-0">
-                {entry.time}
+                {new Date(j.waktu).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
               <div className="flex-1 ml-4 text-gray-800">
-                {entry.description}
-              </div>
-              {/* Anda bisa tambahkan tombol aksi di sini (Edit/Hapus) */}
-              <div className="ml-4 flex-shrink-0">
-                {/* <button className="text-blue-500 hover:text-blue-700 text-sm mr-2">Edit</button>
-                                <button className="text-red-500 hover:text-red-700 text-sm">Hapus</button> */}
+                {j.deskripsi} ({j.pasien})
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center text-gray-500 p-8">
-            Tidak ada jadwal untuk tanggal ini.
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
