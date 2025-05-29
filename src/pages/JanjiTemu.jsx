@@ -60,7 +60,7 @@ const JanjiTemu = () => {
   // Hari ini + 1 (karena kamu mau minDate mulai dari besok)
   const today = new Date();
   const tomorrow = new Date(today);
-  // tomorrow.setDate(tomorrow.getDate() + 1); // Min tanggal = hari ini + 1
+  tomorrow.setDate(tomorrow.getDate() + 1); // Min tanggal = hari ini + 1
 
   const minDate = formatDate(tomorrow); // Mulai dari besok
   const maxDate = (() => {

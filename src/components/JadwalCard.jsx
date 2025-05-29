@@ -62,7 +62,9 @@ const JadwalCard = ({ appointment, onSelect, isSelected }) => {
       // Dispatch action booking janji temu
       await dispatch(bookJanjiTemu({ id_janji, id_pasien, keluhan }));
       setTimeout(() => {
-        toast.success("Berhasil memesan janji temu!");
+        toast.success(
+          "Berhasil memesan janji temu, tunggu konfirmasi admin paling lambat 1x24jam!"
+        );
       }, 1000);
       setModalOpen(false);
     } catch (err) {

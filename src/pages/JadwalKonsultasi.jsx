@@ -20,6 +20,12 @@ const JadwalKonsultasiPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [loadingId, setLoadingId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+  const [dateError, setDateError] = useState("");
+
+  // Set min date (tomorrow)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   // Ambil data awal
   useEffect(() => {
@@ -148,43 +154,55 @@ const JadwalKonsultasiPage = () => {
           <h2 className="text-2xl font-bold">Jadwal Konsultasi Tersedia</h2>
 
           {/* Input Filter Tanggal */}
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="dateFilter"
-              className="text-sm font-medium whitespace-nowrap"
-            >
-              Cari Berdasarkan Tanggal:
-            </label>
-            <input
-              type="date"
-              id="dateFilter"
-              value={filterDate}
-              onChange={(e) => {
-                const val = e.target.value;
-                setFilterDate(val);
-                dispatch(
-                  fetchJadwalKonsultasi({ page: 1, limit: 5, tanggal: val })
-                );
-              }}
-              min={new Date().toISOString().split("T")[0]}
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {filterDate && (
-              <button
-                onClick={() => {
-                  setFilterDate("");
-                  dispatch(fetchJadwalKonsultasi({ page: 1, limit: 5 }));
-                  toast.dismiss();
-                  toast.success("Menampilkan ulang semua jadwal.", {
-                    autoClose: 3000,
-                    closeButton: true,
-                    closeOnClick: true,
-                  });
-                }}
-                className="text-sm text-blue-600 hover:underline ml-1"
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="dateFilter"
+                className="text-sm font-medium whitespace-nowrap"
               >
-                Reset
-              </button>
+                Cari Berdasarkan Tanggal:
+              </label>
+              <input
+                type="date"
+                id="dateFilter"
+                value={filterDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFilterDate(val);
+                  setDateError("");
+
+                  if (val && new Date(val) < tomorrow) {
+                    return;
+                  }
+
+                  dispatch(
+                    fetchJadwalKonsultasi({ page: 1, limit: 5, tanggal: val })
+                  );
+                }}
+                min={minDate}
+                className="rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {filterDate && (
+                <button
+                  onClick={() => {
+                    setFilterDate("");
+                    setDateError("");
+                    dispatch(fetchJadwalKonsultasi({ page: 1, limit: 5 }));
+                    toast.dismiss();
+                    toast.success("Menampilkan ulang semua jadwal.", {
+                      autoClose: 3000,
+                      closeButton: true,
+                      closeOnClick: true,
+                    });
+                  }}
+                  className="text-sm text-blue-600 hover:underline ml-1"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+            {dateError && (
+              <span className="text-red-500 text-sm">{dateError}</span>
             )}
           </div>
         </div>
@@ -290,8 +308,8 @@ const JadwalKonsultasiPage = () => {
 
               <p className="mb-8 text-gray-600 leading-relaxed">
                 Apakah Anda yakin ingin memilih jadwal ini? Pastikan jadwal yang
-                dipilih sesuai dengan waktu yang Anda inginkan.
-                dan konsultasi ini akan dikenakan biaya sebesar Rp. 150.000
+                dipilih sesuai dengan waktu yang Anda inginkan. dan konsultasi
+                ini akan dikenakan biaya sebesar Rp. 150.000
               </p>
 
               <div className="flex justify-end gap-4">

@@ -46,7 +46,7 @@ export default function Beranda() {
               {/* Chat dengan Dokter */}
               <ServiceCard
                 title="Chat dengan Dokter"
-                description="Konsultasi langsung dengan lebih dari 50 spesialis 24/7"
+                description="Atur jadwal konsultasi langsung dengan drg. Irna!"
                 icon={<MessageSquareText size={32} />}
                 link="/jadwal-konsultasi"
               />
@@ -54,7 +54,7 @@ export default function Beranda() {
               {/* Janji Temu */}
               <ServiceCard
                 title="Janji Temu"
-                description="Atur jadwal konsultasi dokter secara mudah dan cepat"
+                description="Atur jadwal janji temu dokter secara mudah dan cepat"
                 icon={<CalendarClock size={32} />}
                 link="/list-jadwal"
               />
