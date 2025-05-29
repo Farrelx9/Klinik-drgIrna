@@ -5,6 +5,7 @@ import * as pasienActions from "../../../redux-admin/action/pasienAction";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FieldPasien from "./FieldPasien";
+import { deleteRekamMedis } from "../../../redux-admin/action/rekamMedisAction";
 
 export default function MedicalTab() {
   const dispatch = useDispatch();
@@ -13,6 +14,8 @@ export default function MedicalTab() {
   const rekamMedisState = useSelector((state) => state.rekamMedis || {});
   const pasienState = useSelector((state) => state.pasien || {});
   const [editingId, setEditingId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [recordToDeleteId, setRecordToDeleteId] = useState(null);
 
   const {
     data: rekamMedisList = [],
@@ -128,11 +131,34 @@ export default function MedicalTab() {
     setShowModal(true);
   };
 
-  // Tombol hapus
-  const handleDelete = (id_rekam_medis) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus rekam medis ini?")) {
-      dispatch(rekamMedisActions.deleteRekamMedis(id_rekam_medis));
+  // Handle Delete - show confirmation modal instead of window.confirm
+  const handleDeleteClick = (id_rekam_medis) => {
+    setRecordToDeleteId(id_rekam_medis);
+    setShowDeleteConfirm(true);
+  };
+
+  // Confirm Delete from modal
+  const confirmDelete = async () => {
+    if (recordToDeleteId) {
+      try {
+        await dispatch(deleteRekamMedis(recordToDeleteId));
+        toast.success("Rekam medis berhasil dihapus");
+        // Refresh list setelah hapus
+        dispatch(rekamMedisActions.fetchRekamMedis(currentPage, 5, ""));
+      } catch (error) {
+        console.error("Gagal menghapus rekam medis:", error);
+        toast.error("Gagal menghapus rekam medis");
+      }
     }
+    // Close modal and reset state
+    setShowDeleteConfirm(false);
+    setRecordToDeleteId(null);
+  };
+
+  // Cancel Delete from modal
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRecordToDeleteId(null);
   };
 
   // Filter pasien berdasarkan nama/email
@@ -281,7 +307,16 @@ export default function MedicalTab() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent row click event
-                            handleDelete(record.id_rekam_medis);
+                            handleEdit(record);
+                          }}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click event
+                            handleDeleteClick(record.id_rekam_medis);
                           }}
                           className="text-red-500 hover:text-red-700"
                         >
@@ -330,6 +365,36 @@ export default function MedicalTab() {
         <div className="mt-4 bg-white rounded-lg shadow p-4">
           <h2 className="text-lg font-semibold mb-2">Detail Pasien</h2>
           <FieldPasien patient={selectedPatient} onBack={handleBack} />
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus Rekam Medis */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-4">
+                Konfirmasi Hapus Rekam Medis
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus rekam medis ini?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

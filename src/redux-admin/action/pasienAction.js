@@ -1,4 +1,4 @@
-import apiClient from "../../config/apiConfig";
+import apiClient from "../../config/apiConfigAdmin";
 
 export const FETCH_PASIEN_REQUEST = "FETCH_PASIEN_REQUEST";
 export const FETCH_PASIEN_SUCCESS = "FETCH_PASIEN_SUCCESS";

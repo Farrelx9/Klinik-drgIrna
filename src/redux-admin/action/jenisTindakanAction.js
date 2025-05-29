@@ -1,4 +1,4 @@
-import apiClient from "../../config/apiConfig";
+import apiClient from "../../config/apiConfigAdmin";
 
 // === Action Types ===
 export const FETCH_JENIS_TINDAKAN_REQUEST = "FETCH_JENIS_TINDAKAN_REQUEST";
@@ -33,7 +33,7 @@ export const fetchJenisTindakan =
 
       // ✅ Perbaiki mapping meta agar selaras dengan respons API
       const mappedMeta = {
-        page: response.data.meta.page, 
+        page: response.data.meta.page,
         totalItems: response.data.meta.totalItems,
         totalPages: response.data.meta.totalPages,
         hasNextPage: response.data.meta.hasNextPage,

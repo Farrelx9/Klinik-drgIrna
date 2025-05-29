@@ -67,6 +67,7 @@ export default function DashboardAdmin() {
   const handleLogout = () => {
     // Hapus token dari localStorage
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
 
     // Redirect ke halaman login
     navigate("/login-admin"); // Ganti dengan path login Anda
@@ -81,6 +82,7 @@ export default function DashboardAdmin() {
         showProfileMenu={showProfileMenu}
         setShowProfileMenu={setShowProfileMenu}
         activeTab={activeTab}
+        handleLogout={handleLogout}
       />
 
       {/* Mobile Menu */}

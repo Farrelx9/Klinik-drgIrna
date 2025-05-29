@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import {
   Calendar,
   CalendarDays,
@@ -12,6 +13,7 @@ import {
   SmileIcon as Tooth,
   Users,
 } from "lucide-react";
+import LogoKlinik from "../../../assets/images/LogoKlinik.png";
 
 export default function Sidebar({
   activeTab,
@@ -27,10 +29,11 @@ export default function Sidebar({
     >
       <div className="flex items-center justify-between p-4 border-b font-poppins">
         <div className="flex items-center space-x-2">
-          <Tooth className="h-8 w-8 text-blue-500" />
           {isSidebarOpen && (
-            <span className="text-xl font-bold">Klinik Drg Irna</span>
+            <img src={LogoKlinik} alt="Logo Klinik" className="h-6 w-auto" />
           )}
+          {!isSidebarOpen && <Tooth className="h-8 w-8 text-blue-500" />}
+          {isSidebarOpen && <span className="text-xl font-bold"></span>}
         </div>
         <button
           onClick={toggleSidebar}

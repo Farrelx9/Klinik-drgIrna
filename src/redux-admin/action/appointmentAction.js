@@ -1,4 +1,4 @@
-import apiClient from "../../config/apiConfig";
+import apiClient from "../../config/apiConfigAdmin";
 
 export const FETCH_APPOINTMENTS_REQUEST = "FETCH_APPOINTMENTS_REQUEST";
 export const FETCH_APPOINTMENTS_SUCCESS = "FETCH_APPOINTMENTS_SUCCESS";
@@ -12,7 +12,7 @@ export const UPDATE_PAYMENT_REQUEST = "UPDATE_PAYMENT_REQUEST";
 export const UPDATE_PAYMENT_SUCCESS = "UPDATE_PAYMENT_SUCCESS";
 export const UPDATE_PAYMENT_FAILURE = "UPDATE_PAYMENT_FAILURE";
 
-// 📥 Fetch Appointments
+// 📥 Fetch Appointmentss
 export const fetchAppointmentsRequest = () => ({
   type: FETCH_APPOINTMENTS_REQUEST,
 });

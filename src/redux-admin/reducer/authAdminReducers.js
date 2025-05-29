@@ -7,7 +7,7 @@ import {
 
 const initialState = {
   token: localStorage.getItem("token") || null,
-  role: null,
+  role: localStorage.getItem("role") || null,
   isAuthenticated: !!localStorage.getItem("token"),
   loadingAdmin: false,
   errorAdmin: null,
@@ -22,6 +22,7 @@ export default function authAdminReducer(state = initialState, action) {
         errorAdmin: null,
       };
     case LOGIN_ROLE_SUCCESS:
+      localStorage.setItem("role", action.payload.role);
       return {
         ...state,
         loadingAdmin: false,
@@ -40,6 +41,7 @@ export default function authAdminReducer(state = initialState, action) {
       };
     case LOGOUT:
       localStorage.removeItem("token");
+      localStorage.removeItem("role");
       return {
         ...state,
         token: null,

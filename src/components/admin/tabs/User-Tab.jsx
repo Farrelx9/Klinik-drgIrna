@@ -21,9 +21,11 @@ export default function UserTab() {
   const totalItems = meta.totalItems || 0;
   const totalPages = meta.totalPages || 1;
 
-  // State lokal form
+  // State lokal form dan modal hapus
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // New state for delete modal
+  const [userToDeleteId, setUserToDeleteId] = useState(null); // New state for ID to delete
   const [formData, setFormData] = useState({
     id_pasien: "",
     nama: "",
@@ -128,10 +130,34 @@ export default function UserTab() {
     setShowModal(true);
   };
 
-  const handleDelete = (id_pasien) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus pasien ini?")) {
-      dispatch(actions.deleteUser(id_pasien));
+  // Fungsi delete - show confirmation modal instead of window.confirm
+  const handleDeleteClick = (id_pasien) => {
+    setUserToDeleteId(id_pasien);
+    setShowDeleteConfirm(true);
+  };
+
+  // Confirm Delete from modal
+  const confirmDelete = async () => {
+    if (userToDeleteId) {
+      try {
+        await dispatch(actions.deleteUser(userToDeleteId));
+        toast.success("Pasien berhasil dihapus");
+        // Refresh list setelah hapus
+        dispatch(actions.fetchUser(currentPage, 5, searchQuery));
+      } catch (error) {
+        console.error("Gagal menghapus pasien:", error);
+        toast.error("Gagal menghapus pasien");
+      }
     }
+    // Close modal and reset state
+    setShowDeleteConfirm(false);
+    setUserToDeleteId(null);
+  };
+
+  // Cancel Delete from modal
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setUserToDeleteId(null);
   };
 
   return (
@@ -338,7 +364,7 @@ export default function UserTab() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(pasien.id_pasien)}
+                        onClick={() => handleDeleteClick(pasien.id_pasien)}
                         className="text-red-500 hover:text-red-700"
                       >
                         Hapus
@@ -377,6 +403,36 @@ export default function UserTab() {
           </div>
         </div>
       </div>
+
+      {/* Modal Konfirmasi Hapus Pasien */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-4">
+                Konfirmasi Hapus Pasien
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus pasien ini?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

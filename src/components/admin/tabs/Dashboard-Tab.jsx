@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Calendar, Users } from "lucide-react";
-import apiClient from "../../../config/apiConfig";
+import apiClient from "../../../config/apiConfigAdmin";
 
 export default function DashboardTab() {
   const [totalPasien, setTotalPasien] = useState(0);

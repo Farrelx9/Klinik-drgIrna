@@ -4,7 +4,7 @@ import {
   LOGIN_ROLE_FAILURE,
   LOGOUT,
 } from "../types/authAdminTypes";
-import axios from "axios";
+import apiClient from "../../config/apiConfigAdmin";
 
 export const loginRoleRequest = () => ({
   type: LOGIN_ROLE_REQUEST,
@@ -24,17 +24,15 @@ export const loginRole = (email, password) => async (dispatch) => {
   dispatch(loginRoleRequest());
 
   try {
-    const res = await axios.post(
-      "https://bejs-klinik.vercel.app/api/auth/login/role",
-      {
-        email,
-        password,
-      }
-    );
+    const res = await apiClient.post("/auth/login/role", {
+      email,
+      password,
+    });
 
     const { token, role } = res.data;
 
     localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
 
     dispatch(loginRoleSuccess({ token, role }));
   } catch (err) {
@@ -42,10 +40,12 @@ export const loginRole = (email, password) => async (dispatch) => {
       err.response?.data?.message || err.message || "Login gagal";
     dispatch(loginRoleFailure(errorMessage));
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
   }
 };
 
 export const logout = () => (dispatch) => {
   localStorage.removeItem("token");
+  localStorage.removeItem("role");
   dispatch({ type: LOGOUT });
 };

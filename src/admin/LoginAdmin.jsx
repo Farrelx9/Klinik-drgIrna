@@ -106,15 +106,6 @@ export default function LoginAdmin() {
   return (
     <div className="flex h-screen font-poppins">
       <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8 shadow-2xl gap-1 relative">
-        {/* Tombol Kembali */}
-        <button
-          onClick={() => navigate("/")}
-          className="absolute top-8 left-8 flex items-center text-gray-600 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" />
-          <span>Kembali</span>
-        </button>
-
         {/* Logo */}
         <img
           src={LOGO}
@@ -154,9 +145,7 @@ export default function LoginAdmin() {
             className="bg-blue-500 text-white p-2 rounded w-full mb-4"
             disabled={loadingAdmin || isSubmitting}
           >
-            {loadingAdmin || isSubmitting
-              ? "Signing in..."
-              : "Sign in as Admin"}
+            {loadingAdmin || isSubmitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>

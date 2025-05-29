@@ -22,6 +22,8 @@ export default function ChatTab({ isMobile }) {
   const [pesanInput, setPesanInput] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(meta.totalPages || 1);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
 
   useEffect(() => {
     if (userRole !== "dokter") return;
@@ -35,6 +37,23 @@ export default function ChatTab({ isMobile }) {
       setTotalPages(meta.totalPages);
     }
   }, [meta, userRole]);
+
+  useEffect(() => {
+    if (userRole !== "dokter") return;
+    let intervalId;
+    if (selectedChatId && isInputFocused) {
+      intervalId = setInterval(() => {
+        dispatch(getChatDetail(selectedChatId));
+        console.log("Polling for admin messages...");
+      }, 3000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [selectedChatId, dispatch, userRole, isInputFocused]);
 
   useEffect(() => {
     if (userRole !== "dokter") return;
@@ -99,18 +118,26 @@ export default function ChatTab({ isMobile }) {
       toast.warn("Hanya sesi aktif yang bisa diakhiri");
       return;
     }
+    setShowEndSessionConfirm(true);
+  };
 
-    if (window.confirm("Apakah Anda yakin ingin mengakhiri sesi ini?")) {
-      dispatch(akhiriSesiAdmin(activeChat.id_chat))
-        .unwrap()
-        .then(() => {
-          dispatch(getChatDetail(activeChat.id_chat));
-          toast.success("Sesi berhasil diakhiri");
-        })
-        .catch((err) => {
-          toast.error("Gagal mengakhiri sesi: " + err);
-        });
+  const confirmEndSession = async () => {
+    if (activeChat) {
+      try {
+        await dispatch(akhiriSesiAdmin(activeChat.id_chat)).unwrap();
+        toast.success("Sesi berhasil diakhiri");
+      } catch (err) {
+        console.error("Gagal mengakhiri sesi:", err);
+        toast.error(
+          "Gagal mengakhiri sesi: " + (err.message || "Server error")
+        );
+      }
     }
+    setShowEndSessionConfirm(false);
+  };
+
+  const cancelEndSession = () => {
+    setShowEndSessionConfirm(false);
   };
 
   if (userRole !== "dokter") {
@@ -222,6 +249,8 @@ export default function ChatTab({ isMobile }) {
                     value={pesanInput}
                     onChange={(e) => setPesanInput(e.target.value)}
                     disabled={activeChat.status !== "aktif"}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     className={`flex-1 border rounded-md px-3 py-2 text-sm ${
                       activeChat.status !== "aktif"
                         ? "bg-gray-100 cursor-not-allowed"
@@ -522,6 +551,8 @@ export default function ChatTab({ isMobile }) {
                     value={pesanInput}
                     onChange={(e) => setPesanInput(e.target.value)}
                     disabled={activeChat.status !== "aktif"}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     className={`flex-1 border rounded-md px-3 py-2 text-sm ${
                       activeChat.status !== "aktif"
                         ? "bg-gray-100 cursor-not-allowed"
@@ -565,6 +596,37 @@ export default function ChatTab({ isMobile }) {
           </div>
         )}
       </div>
+
+      {/* Modal Konfirmasi Akhiri Sesi */}
+      {showEndSessionConfirm && activeChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-4">
+                Konfirmasi Akhiri Sesi
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin mengakhiri sesi chat dengan pasien{" "}
+                {activeChat.pasien?.nama || "ini"}?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={cancelEndSession}
+                  className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmEndSession}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Akhiri Sesi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,4 +1,4 @@
-import apiClient from "../../config/apiConfig";
+import apiClient from "../../config/apiConfigAdmin";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 // Ambil daftar chat aktif/selesai untuk admin

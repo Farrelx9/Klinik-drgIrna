@@ -7,6 +7,7 @@ import {
 } from "../redux/actions/chatActions";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Konsultasi() {
   const dispatch = useDispatch();
@@ -18,6 +19,7 @@ export default function Konsultasi() {
   const [pesanInput, setPesanInput] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(meta.totalPages);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const { id_chat } = useParams();
 
@@ -49,6 +51,25 @@ export default function Konsultasi() {
       dispatch(getChatDetailForUser(id_chat));
     }
   }, [dispatch, id_chat]);
+
+  // Implement polling for new messages
+  useEffect(() => {
+    let intervalId;
+    // Poll only if a chat is selected AND input area is focused
+    if (selectedChatId && isInputFocused) {
+      intervalId = setInterval(() => {
+        dispatch(getChatDetailForUser(selectedChatId));
+        console.log("Polling for new messages..."); // Optional: for debugging
+      }, 3000); // Poll every 3 seconds (adjust as needed)
+    }
+
+    return () => {
+      // Clean up the interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [dispatch, selectedChatId, isInputFocused]);
 
   const handleChatSelect = (chat) => {
     setSelectedChatId(chat.id_chat);
@@ -220,8 +241,12 @@ export default function Konsultasi() {
                     >
                       <p className="text-sm">{msg.isi}</p>
                       <small className="text-xs block mt-1 opacity-80">
-                        {new Date(msg.waktu_kirim).toLocaleTimeString()} •{" "}
-                        {msg.pengirim === "pasien" ? "Anda" : "Dokter"}
+                        {new Date(msg.waktu_kirim).toLocaleTimeString("id-ID", {
+                          hour: "numeric",
+                          minute: "numeric",
+                          hour12: true,
+                        })}{" "}
+                        • {msg.pengirim === "pasien" ? "Anda" : "Dokter"}
                       </small>
                     </div>
                   </div>
@@ -247,6 +272,8 @@ export default function Konsultasi() {
                     value={pesanInput}
                     onChange={(e) => setPesanInput(e.target.value)}
                     disabled={activeChat.status !== "aktif"}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     className={`flex-1 border rounded-md px-3 py-2 text-sm ${
                       activeChat.status !== "aktif"
                         ? "bg-gray-100 cursor-not-allowed"

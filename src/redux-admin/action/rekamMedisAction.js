@@ -1,4 +1,4 @@
-import apiClient from "../../config/apiConfig";
+import apiClient from "../../config/apiConfigAdmin";
 
 export const FETCH_REKAM_MEDIS_REQUEST = "FETCH_REKAM_MEDIS_REQUEST";
 export const FETCH_REKAM_MEDIS_SUCCESS = "FETCH_REKAM_MEDIS_SUCCESS";

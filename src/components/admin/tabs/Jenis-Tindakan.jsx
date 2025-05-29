@@ -18,9 +18,11 @@ export default function JenisTindakan() {
   const totalItems = meta.totalItems || 0;
   const totalPages = meta.totalPages || 1;
 
-  // State lokal
+  // State lokal form dan modal hapus
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // New state for delete modal
+  const [itemToDeleteId, setItemToDeleteId] = useState(null); // New state for ID to delete
   const [formData, setFormData] = useState({
     nama_tindakan: "",
     deskripsi: "",
@@ -128,13 +130,36 @@ export default function JenisTindakan() {
     setShowModal(true);
   };
 
-  // Fungsi delete
-  const handleDelete = (id_tindakan) => {
-    if (
-      window.confirm("Apakah Anda yakin ingin menghapus jenis tindakan ini?")
-    ) {
-      dispatch(actions.deleteJenisTindakan(id_tindakan));
+  // Fungsi delete - show confirmation modal instead of window.confirm
+  const handleDeleteClick = (id_tindakan) => {
+    setItemToDeleteId(id_tindakan);
+    setShowDeleteConfirm(true);
+  };
+
+  // Confirm Delete from modal
+  const confirmDelete = async () => {
+    if (itemToDeleteId) {
+      try {
+        await dispatch(actions.deleteJenisTindakan(itemToDeleteId));
+        toast.success("Jenis tindakan berhasil dihapus");
+        // Refresh list setelah hapus
+        dispatch(
+          actions.fetchJenisTindakan(currentPage, 5, debouncedSearchQuery)
+        );
+      } catch (error) {
+        console.error("Gagal menghapus jenis tindakan:", error);
+        toast.error("Gagal menghapus jenis tindakan");
+      }
     }
+    // Close modal and reset state
+    setShowDeleteConfirm(false);
+    setItemToDeleteId(null);
+  };
+
+  // Cancel Delete from modal
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setItemToDeleteId(null);
   };
 
   return (
@@ -310,7 +335,7 @@ export default function JenisTindakan() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(tindakan.id_tindakan)}
+                        onClick={() => handleDeleteClick(tindakan.id_tindakan)}
                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                       >
                         Hapus
@@ -349,6 +374,36 @@ export default function JenisTindakan() {
           </div>
         </div>
       </div>
+
+      {/* Modal Konfirmasi Hapus Jenis Tindakan */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-4">
+                Konfirmasi Hapus Jenis Tindakan
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus jenis tindakan ini?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
