@@ -11,6 +11,7 @@ export const CREATE_USER_FAILURE = "CREATE_USER_FAILURE";
 
 export const UPDATE_USER_SUCCESS = "UPDATE_USER_SUCCESS";
 export const DELETE_USER_SUCCESS = "DELETE_USER_SUCCESS";
+export const DELETE_USER_FAILURE = "DELETE_USER_FAILURE";
 
 export const SET_USER_PAGE = "SET_USER_PAGE";
 
@@ -88,9 +89,12 @@ export const deleteUser = (id_pasien) => async (dispatch) => {
       type: DELETE_USER_SUCCESS,
       payload: id_pasien,
     });
-
     ("Pasien berhasil dihapus");
   } catch (error) {
+    dispatch({
+      type: DELETE_USER_FAILURE,
+      payload: error.message,
+    });
     ("Gagal menghapus pasien");
   }
 };

@@ -7,6 +7,104 @@ import {
 import { Bell, CheckCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
 
+// Fungsi helper untuk format tanggal lokal Indonesia (WIB)
+const formatDate = (date) => {
+  const options = {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Jakarta", // Pastikan zona waktu WIB
+  };
+  return new Date(date).toLocaleDateString("id-ID", options);
+};
+
+// Fungsi helper untuk format waktu lokal + WIB
+const formatTimeWithWIB = (date) => {
+  const options = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23", // Format 24 jam
+    timeZoneName: "short",
+    timeZone: "Asia/Jakarta", // Gunakan zona waktu Jakarta/WIB
+  };
+  let formatted = new Date(date).toLocaleTimeString("id-ID", options);
+  return formatted.replace("GMT+07:00", "WIB");
+};
+
+// Fungsi helper untuk ubah format waktu dalam pesan notifikasi
+const formatCustomMessageDate = (message, createdAt) => {
+  // Regex untuk berbagai format waktu
+  const isoRegex = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)/;
+  const oldRegex = /(\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}\.\d{1,2}\.\d{1,2})/;
+  const jsRegex =
+    /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \w+ \d{2} \d{4} \d{2}:\d{2}:\d{2} \w+/;
+
+  // New regex for messages that already contain "pukul" with UTC time
+  const pukulUtcRegex = /pukul (\d{2}\.\d{2}) UTC/;
+
+  let match;
+
+  // If message includes "pukul", check for the specific UTC pattern and reformat
+  if (message.includes("pukul")) {
+    match = message.match(pukulUtcRegex);
+    if (match) {
+      const timePart = match[1]; // e.g., "09.00"
+      // We need a full date to correctly format time with timezone.
+      // Use the date from createdAt, assuming the time in the message refers to that day.
+      const baseDate = new Date(createdAt);
+      // Set the time from the message (HH.MM) on the base date.
+      // This assumes the time in the message is in UTC as indicated by "UTC".
+      const [hours, minutes] = timePart.split(".");
+      baseDate.setUTCHours(parseInt(hours, 10));
+      baseDate.setUTCMinutes(parseInt(minutes, 10));
+      baseDate.setUTCSeconds(0);
+      baseDate.setUTCMilliseconds(0);
+
+      const formattedTime = formatTimeWithWIB(baseDate); // Format this Date object to WIB
+      // Replace the original "pukul HH.MM UTC" with the new formatted time
+      return message.replace(pukulUtcRegex, `pukul ${formattedTime}`);
+    }
+    // If "pukul" is present but not followed by the expected UTC pattern, return as is
+    return message;
+  }
+
+  // Check other formats if "pukul" wasn't in the original message
+  // ... existing code ...
+  else if ((match = message.match(isoRegex))) {
+    const rawDate = match[0];
+    const formattedDate = formatDate(rawDate);
+    const formattedTime = formatTimeWithWIB(rawDate);
+    return message.replace(rawDate, `${formattedDate} pukul ${formattedTime}`);
+  }
+
+  // Cek format: "2/6/2025, 12.00.00"
+  // ... existing code ...
+  else if ((match = message.match(oldRegex))) {
+    const rawDate = match[0];
+    const [datePart, timePart] = rawDate.split(", ");
+    const [day, month, year] = datePart.split("/");
+    const [hours, minutes] = timePart.split(".").slice(0, 2);
+
+    const jsDate = new Date(year, month - 1, day, hours, minutes);
+    const formattedDate = formatDate(jsDate);
+    const formattedTime = formatTimeWithWIB(jsDate);
+
+    return message.replace(rawDate, `${formattedDate} pukul ${formattedTime}`);
+  }
+
+  // Cek format: "Mon Jun 02 2025 12:00:00 GMT+0000 (Coordinated Universal Time)"
+  // ... existing code ...
+  else if ((match = message.match(jsRegex))) {
+    const rawDate = match[0];
+    const jsDate = new Date(rawDate);
+    const formattedDate = formatDate(jsDate);
+    const formattedTime = formatTimeWithWIB(jsDate);
+    return message.replace(rawDate, `${formattedDate} pukul ${formattedTime}`);
+  }
+
+  return message;
+};
+
 function NotifikasiItem({ notifikasi }) {
   const dispatch = useDispatch();
 
@@ -14,11 +112,6 @@ function NotifikasiItem({ notifikasi }) {
     if (!notifikasi.is_read) {
       dispatch(markAllNotificationAsRead(notifikasi.id_notifikasi));
     }
-  };
-
-  const formatDate = (date) => {
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    return new Date(date).toLocaleDateString("id-ID", options);
   };
 
   return (
@@ -31,9 +124,15 @@ function NotifikasiItem({ notifikasi }) {
           <h3 className="text-sm font-semibold text-gray-900">
             {notifikasi.judul}
           </h3>
-          <p className="mt-1 text-sm text-gray-600">{notifikasi.pesan}</p>
+          <p className="mt-1 text-sm text-gray-600">
+            {/* Pass createdAt to formatCustomMessageDate for date context */}
+            {formatCustomMessageDate(notifikasi.pesan, notifikasi.createdAt)}
+          </p>
           <div className="mt-2 flex items-center text-xs text-gray-500">
-            <span>{formatDate(notifikasi.createdAt)}</span>
+            <span>
+              {formatDate(notifikasi.createdAt)} pukul{" "}
+              {formatTimeWithWIB(notifikasi.createdAt)}
+            </span>
           </div>
         </div>
         {!notifikasi.is_read && (
@@ -198,7 +297,7 @@ function Notifikasi() {
               strokeLinejoin="round"
               className="h-4 w-4 ml-auto"
             >
-              <path d="m9 18 6-6-6-6" />
+              <path d="m9 18 6-6-6" />
             </svg>
           </button>
         </div>

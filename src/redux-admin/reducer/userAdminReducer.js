@@ -5,6 +5,7 @@ import {
   CREATE_USER_SUCCESS,
   UPDATE_USER_SUCCESS,
   DELETE_USER_SUCCESS,
+  DELETE_USER_FAILURE,
   SET_USER_PAGE,
 } from "../action/userAdminAction";
 
@@ -61,6 +62,13 @@ const userAdminReducer = (state = initialState, action) => {
       return {
         ...state,
         users: state.users.filter((item) => item.id_pasien !== action.payload),
+        error: null,
+      };
+
+    case DELETE_USER_FAILURE:
+      return {
+        ...state,
+        error: action.payload,
       };
 
     case SET_USER_PAGE:

@@ -10,6 +10,19 @@ import {
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// Fungsi helper untuk format waktu lokal + WIB
+const formatTimeWithWIB = (date) => {
+  const options = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23", // Format 24 jam
+    timeZoneName: "short",
+    timeZone: "Asia/Jakarta", // Gunakan zona waktu Jakarta/WIB
+  };
+  let formatted = new Date(date).toLocaleTimeString("id-ID", options);
+  return formatted.replace("GMT+07:00", "WIB");
+};
+
 export default function AppointmentTab() {
   const dispatch = useDispatch();
   const { loading, appointments, meta, error, updatingId } = useSelector(
@@ -162,13 +175,16 @@ export default function AppointmentTab() {
                     )}
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(appointment.tanggal_waktu).toLocaleTimeString(
-                      "id-ID",
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
+                    {/* Combine date and time and then format to WIB, replacing '.' with ':' in time */}
+                    {
+                      appointment.tanggal_waktu && appointment.waktu_janji
+                        ? formatTimeWithWIB(
+                            `${
+                              appointment.tanggal_waktu
+                            }T${appointment.waktu_janji.replace(/\./g, ":")}Z`
+                          )
+                        : "-" // Display '-' if date or time is missing
+                    }
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span
