@@ -6,7 +6,7 @@ export const FETCH_PASIEN_FAILURE = "FETCH_PASIEN_FAILURE";
 
 // Fetch All Pasien
 export const fetchUser =
-  (page = 1, limit = 5, search = "") =>
+  (page = 1, limit = 999, search = "") =>
   async (dispatch) => {
     dispatch({ type: FETCH_PASIEN_REQUEST });
 
