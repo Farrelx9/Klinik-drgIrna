@@ -60,7 +60,7 @@ export default function Konsultasi() {
       intervalId = setInterval(() => {
         dispatch(getChatDetailForUser(selectedChatId));
         console.log("Polling for new messages..."); // Optional: for debugging
-      }, 3000); // Poll every 3 seconds (adjust as needed)
+      }, 2000); // Poll every 3 seconds (adjust as needed)
     }
 
     return () => {
