@@ -45,7 +45,7 @@ export default function ChatTab({ isMobile }) {
       intervalId = setInterval(() => {
         dispatch(getChatDetail(selectedChatId));
         console.log("Polling for admin messages...");
-      }, 3000);
+      }, 2000);
     }
 
     return () => {
