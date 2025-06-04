@@ -150,56 +150,58 @@ const JadwalKonsultasiPage = () => {
       <Navbar />
       <div className="container mx-auto p-6 py-20">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-2xl font-bold">Jadwal Konsultasi Tersedia</h2>
 
           {/* Input Filter Tanggal */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
+          <div className="w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <label
                 htmlFor="dateFilter"
                 className="text-sm font-medium whitespace-nowrap"
               >
                 Cari Berdasarkan Tanggal:
               </label>
-              <input
-                type="date"
-                id="dateFilter"
-                value={filterDate}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFilterDate(val);
-                  setDateError("");
-
-                  if (val && new Date(val) < tomorrow) {
-                    return;
-                  }
-
-                  dispatch(
-                    fetchJadwalKonsultasi({ page: 1, limit: 5, tanggal: val })
-                  );
-                }}
-                min={minDate}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {filterDate && (
-                <button
-                  onClick={() => {
-                    setFilterDate("");
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="date"
+                  id="dateFilter"
+                  value={filterDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFilterDate(val);
                     setDateError("");
-                    dispatch(fetchJadwalKonsultasi({ page: 1, limit: 5 }));
-                    toast.dismiss();
-                    toast.success("Menampilkan ulang semua jadwal.", {
-                      autoClose: 3000,
-                      closeButton: true,
-                      closeOnClick: true,
-                    });
+
+                    if (val && new Date(val) < tomorrow) {
+                      return;
+                    }
+
+                    dispatch(
+                      fetchJadwalKonsultasi({ page: 1, limit: 5, tanggal: val })
+                    );
                   }}
-                  className="text-sm text-blue-600 hover:underline ml-1"
-                >
-                  Reset
-                </button>
-              )}
+                  min={minDate}
+                  className="w-full sm:w-auto rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {filterDate && (
+                  <button
+                    onClick={() => {
+                      setFilterDate("");
+                      setDateError("");
+                      dispatch(fetchJadwalKonsultasi({ page: 1, limit: 5 }));
+                      toast.dismiss();
+                      toast.success("Menampilkan ulang semua jadwal.", {
+                        autoClose: 3000,
+                        closeButton: true,
+                        closeOnClick: true,
+                      });
+                    }}
+                    className="text-sm text-blue-600 hover:underline whitespace-nowrap"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
             {dateError && (
               <span className="text-red-500 text-sm">{dateError}</span>

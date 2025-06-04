@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Bell, User, UserCircle } from "lucide-react";
+import { User, UserCircle } from "lucide-react";
 
 export default function Header({
   activeTab,
@@ -64,11 +64,6 @@ export default function Header({
       </h1>
       <div className="flex items-center space-x-4">
         <div className="flex items-center relative profile-menu-container gap-4">
-          {/* Notification Bell */}
-          <button className="p-1 rounded-full text-gray-600 hover:bg-gray-200 focus:outline-none">
-            <Bell className="h-5 w-5" />
-          </button>
-
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center space-x-2 focus:outline-none"

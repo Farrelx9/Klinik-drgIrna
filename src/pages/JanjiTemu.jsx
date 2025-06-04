@@ -130,63 +130,67 @@ const JanjiTemu = () => {
       <Navbar />
       <div className="container mx-auto p-6 py-20">
         {/* Header dengan Judul dan Input Filter Tanggal */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-2xl font-bold">Jadwal Tersedia</h2>
 
           {/* Input Tanggal untuk Filter */}
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="dateFilter"
-              className="text-sm font-medium whitespace-nowrap"
-            >
-              Cari Berdasarkan Tanggal:
-            </label>
-            <input
-              type="date"
-              id="dateFilter"
-              value={filterDate}
-              onChange={(e) => {
-                setFilterDate(e.target.value);
-                dispatch(
-                  fetchJanjiTemu({
-                    page: 1,
-                    limit: 5,
-                    tanggal: e.target.value || undefined,
-                  })
-                );
-
-                // Tambahkan toast info secara langsung
-                if (isValidDate(e.target.value)) {
-                  const selectedDate = new Date(
-                    e.target.value
-                  ).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  });
-                }
-              }}
-              min={minDate} // Mulai dari besok
-              max={maxDate} // Sampai 1 bulan ke depan
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {filterDate && (
-              <button
-                onClick={() => {
-                  setFilterDate("");
-                  dispatch(fetchJanjiTemu({ page: 1, limit: 5 }));
-                  toast.dismiss(); // Tutup semua toast
-                  toast.success("Menampilkan ulang semua jadwal.", {
-                    autoClose: 3000,
-                    closeButton: true,
-                    closeOnClick: true,
-                  });
-                }}
-                className="text-sm text-blue-600 hover:underline ml-1"
+          <div className="w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <label
+                htmlFor="dateFilter"
+                className="text-sm font-medium whitespace-nowrap"
               >
-                Reset
-              </button>
-            )}
+                Cari Berdasarkan Tanggal:
+              </label>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="date"
+                  id="dateFilter"
+                  value={filterDate}
+                  onChange={(e) => {
+                    setFilterDate(e.target.value);
+                    dispatch(
+                      fetchJanjiTemu({
+                        page: 1,
+                        limit: 5,
+                        tanggal: e.target.value || undefined,
+                      })
+                    );
+
+                    // Tambahkan toast info secara langsung
+                    if (isValidDate(e.target.value)) {
+                      const selectedDate = new Date(
+                        e.target.value
+                      ).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      });
+                    }
+                  }}
+                  min={minDate} // Mulai dari besok
+                  max={maxDate} // Sampai 1 bulan ke depan
+                  className="w-full sm:w-auto rounded-md border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {filterDate && (
+                  <button
+                    onClick={() => {
+                      setFilterDate("");
+                      dispatch(fetchJanjiTemu({ page: 1, limit: 5 }));
+                      toast.dismiss(); // Tutup semua toast
+                      toast.success("Menampilkan ulang semua jadwal.", {
+                        autoClose: 3000,
+                        closeButton: true,
+                        closeOnClick: true,
+                      });
+                    }}
+                    className="text-sm text-blue-600 hover:underline whitespace-nowrap"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
