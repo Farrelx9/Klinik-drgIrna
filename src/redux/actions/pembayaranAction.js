@@ -11,7 +11,7 @@ export const createPembayaranChat = createAsyncThunk(
 
       const response = await apiClient.post("/pembayaran/chat/bayar", {
         id_chat,
-        jumlah: 150000,
+        jumlah: 50000,
         metode_pembayaran: "midtrans",
       });
 

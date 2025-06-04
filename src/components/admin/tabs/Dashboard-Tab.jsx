@@ -92,23 +92,7 @@ export default function DashboardTab() {
       .get("/jenisTindakan/getAll?_=" + Date.now(), config)
       .then((response) => {
         if (response.data?.success) {
-          console.log("Raw API Response:", response.data.data);
-
-          const sortedData = [...response.data.data].sort((a, b) => {
-            const dateA = new Date(a.createdAt);
-            const dateB = new Date(b.createdAt);
-
-            if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
-              console.warn("Tanggal tidak valid:", a.createdAt, b.createdAt);
-              return 0;
-            }
-
-            return dateB - dateA; // Descending (terbaru di atas)
-          });
-
-          console.log("Sorted Data (terbaru di atas):", sortedData);
-
-          setTindakanTarif(sortedData.slice(0, 10));
+          setTindakanTarif(response.data.data.slice(0, 10));
         }
       })
       .catch((error) => {
