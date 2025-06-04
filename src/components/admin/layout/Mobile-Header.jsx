@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu, SmileIcon as Tooth, User, X } from "lucide-react";
+import { Menu, SmileIcon as Tooth, User, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import LogoKlinik from "../../../assets/images/LogoKlinik.png";
@@ -106,12 +106,7 @@ export default function MobileHeader({
           {activeTab === "chat" && "Konsultasi Chat"}
           {activeTab === "medical" && "Rekam Medis"}
         </h1>
-        <div className="flex items-center">
-          <button className="p-2 rounded-full hover:bg-gray-100 relative">
-            <Bell className="h-5 w-5 text-gray-500" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-          </button>
-        </div>
+        <div className="flex items-center"></div>
       </div>
 
       {showLogoutConfirm && (

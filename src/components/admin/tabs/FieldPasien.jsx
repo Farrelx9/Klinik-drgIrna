@@ -85,9 +85,9 @@ export default function FieldPasien({ patient, onBack }) {
     if (!searchTindakan.trim()) return [];
 
     const query = searchTindakan.toLowerCase();
-    return tindakanOptions
-      .filter((t) => t.nama_tindakan?.toLowerCase().includes(query))
-      .slice(0, 5); // Batasi hanya 5 sugest
+    return tindakanOptions.filter((t) =>
+      t.nama_tindakan?.toLowerCase().includes(query)
+    );
   }, [searchTindakan, tindakanOptions]);
 
   // Handler saat pilih tindakan

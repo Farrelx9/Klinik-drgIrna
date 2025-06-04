@@ -10,13 +10,37 @@ export default function DashboardTab() {
   const [tindakanTarif, setTindakanTarif] = useState([]);
   const [loadingTarif, setLoadingTarif] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token"); // Ambil token dari Local Storage
+  // Helper function: Format waktu (HH:mm)
+  const formatTime = (isoString) => {
+    if (!isoString) return "-";
+    const date = new Date(isoString);
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
 
-    // Konfigurasi header dengan token
+  // Helper function: Format tanggal (DD/MM/YYYY)
+  const formatDate = (isoString) => {
+    if (!isoString) return "-";
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Bulan mulai dari 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Helper function: Format mata uang (Rp 300.000)
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "-";
+    return `Rp ${amount.toLocaleString("id-ID")}`;
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`, // Tambahkan header Authorization
+        Authorization: `Bearer ${token}`,
       },
     };
 
@@ -24,7 +48,7 @@ export default function DashboardTab() {
     apiClient
       .get("/pasienAdmin/pasien", config)
       .then((response) => {
-        if (response.data.success) {
+        if (response.data?.success) {
           const total = response.data.meta?.totalItems || 0;
           setTotalPasien(total);
         }
@@ -37,7 +61,7 @@ export default function DashboardTab() {
     apiClient
       .get("/janjiTemu/booked", config)
       .then((response) => {
-        if (response.data.success) {
+        if (response.data?.success) {
           const total = response.data.meta?.totalItems || 0;
           setJanjiTemuHariIni(total);
         }
@@ -51,8 +75,8 @@ export default function DashboardTab() {
     apiClient
       .get("/konsultasi/chat/admin/daftar", config)
       .then((response) => {
-        if (response.data.success) {
-          setLatestChats(response.data.data.slice(0, 5)); // Ambil 5 chat terbaru
+        if (response.data?.success) {
+          setLatestChats(response.data.data.slice(0, 5));
         }
       })
       .catch((error) => {
@@ -62,13 +86,29 @@ export default function DashboardTab() {
         setLoadingChats(false);
       });
 
-    // Fetch Tarif Tindakan
+    // Fetch Tarif Tindakan + Sortir Berdasarkan createdAt
     setLoadingTarif(true);
     apiClient
-      .get("/jenisTindakan/getAll", config)
+      .get("/jenisTindakan/getAll?_=" + Date.now(), config)
       .then((response) => {
-        if (response.data.success) {
-          setTindakanTarif(response.data.data.slice(0, 5)); // Ambil 5 tarif pertama
+        if (response.data?.success) {
+          console.log("Raw API Response:", response.data.data);
+
+          const sortedData = [...response.data.data].sort((a, b) => {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+
+            if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+              console.warn("Tanggal tidak valid:", a.createdAt, b.createdAt);
+              return 0;
+            }
+
+            return dateB - dateA; // Descending (terbaru di atas)
+          });
+
+          console.log("Sorted Data (terbaru di atas):", sortedData);
+
+          setTindakanTarif(sortedData.slice(0, 10));
         }
       })
       .catch((error) => {
@@ -79,33 +119,9 @@ export default function DashboardTab() {
       });
   }, []);
 
-  // Helper function to format time
-  const formatTime = (isoString) => {
-    if (!isoString) return "-";
-    const date = new Date(isoString);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-
-  // Helper function to format date
-  const formatDate = (isoString) => {
-    if (!isoString) return "-";
-    const date = new Date(isoString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Month is 0-indexed
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  // Helper function to format currency
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "-";
-    return `Rp ${amount.toLocaleString("id-ID")}`;
-  };
-
   return (
     <>
+      {/* Statistik Dasar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 font-poppins">
         {/* Total Pasien */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
@@ -127,7 +143,7 @@ export default function DashboardTab() {
               <Calendar className="h-5 w-5 md:h-6 md:w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Janji Temu Hari Ini</p>
+              <p className="text-sm text-gray-500">Janji Temu</p>
               <p className="text-xl md:text-2xl font-bold">
                 {janjiTemuHariIni}
               </p>
@@ -136,8 +152,9 @@ export default function DashboardTab() {
         </div>
       </div>
 
-      {/* Konsultasi Terbaru */}
+      {/* Daftar Konsultasi Terbaru & Tarif Tindakan */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Konsultasi Terbaru */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold">Konsultasi Terbaru</h2>
@@ -158,7 +175,7 @@ export default function DashboardTab() {
                   key={chat.id_chat}
                   className="p-4 flex items-center hover:bg-gray-50 cursor-pointer"
                 >
-                  {/* Kiri: Waktu & Tanggal */}
+                  {/* Waktu & Tanggal */}
                   <div className="flex flex-col items-start w-24 text-sm pr-4">
                     <div className="font-semibold text-gray-800">
                       {formatTime(chat.waktu_mulai)}
@@ -168,7 +185,7 @@ export default function DashboardTab() {
                     </div>
                   </div>
 
-                  {/* Kanan: Nama Pasien & Status */}
+                  {/* Nama Pasien & Status */}
                   <div className="flex-1">
                     <div className="text-sm font-medium text-gray-900">
                       {chat.pasien?.nama || "N/A"}
@@ -184,7 +201,7 @@ export default function DashboardTab() {
           </div>
         </div>
 
-        {/* Tarif Tindakan */}
+        {/* Tarif Tindakan Terbaru */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold">Tarif Tindakan Terbaru</h2>

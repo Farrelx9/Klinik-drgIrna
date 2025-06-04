@@ -22,7 +22,7 @@ export const SET_PAGE = "SET_PAGE";
 
 // === Fetch All Jenis Tindakan ===
 export const fetchJenisTindakan =
-  (page = 1, limit = 5, search = "") =>
+  (page = 1, limit = 100, search = "") =>
   async (dispatch) => {
     dispatch({ type: FETCH_JENIS_TINDAKAN_REQUEST });
 
