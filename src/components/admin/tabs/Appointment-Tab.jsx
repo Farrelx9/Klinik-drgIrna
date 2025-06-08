@@ -30,7 +30,7 @@ export default function AppointmentTab() {
   );
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("pending");
 
   // Ambil currentPage & totalPages dengan fallback
   const currentPage = parseInt(meta.currentPage) || 1;
