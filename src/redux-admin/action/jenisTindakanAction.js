@@ -5,6 +5,13 @@ export const FETCH_JENIS_TINDAKAN_REQUEST = "FETCH_JENIS_TINDAKAN_REQUEST";
 export const FETCH_JENIS_TINDAKAN_SUCCESS = "FETCH_JENIS_TINDAKAN_SUCCESS";
 export const FETCH_JENIS_TINDAKAN_FAILURE = "FETCH_JENIS_TINDAKAN_FAILURE";
 
+export const FETCH_ALL_JENIS_TINDAKAN_REQUEST =
+  "FETCH_ALL_JENIS_TINDAKAN_REQUEST";
+export const FETCH_ALL_JENIS_TINDAKAN_SUCCESS =
+  "FETCH_ALL_JENIS_TINDAKAN_SUCCESS";
+export const FETCH_ALL_JENIS_TINDAKAN_FAILURE =
+  "FETCH_ALL_JENIS_TINDAKAN_FAILURE";
+
 // === Action Types untuk Create ===
 export const CREATE_JENIS_TINDAKAN_REQUEST = "CREATE_JENIS_TINDAKAN_REQUEST";
 export const CREATE_JENIS_TINDAKAN_SUCCESS = "CREATE_JENIS_TINDAKAN_SUCCESS";
@@ -51,6 +58,31 @@ export const fetchJenisTindakan =
       dispatch({
         type: FETCH_JENIS_TINDAKAN_FAILURE,
         payload: error.message,
+      });
+    }
+  };
+
+// === Fetch All Jenis Tindakan (Tanpa Pagination) ===
+export const fetchAllJenisTindakan =
+  (search = "") =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_ALL_JENIS_TINDAKAN_REQUEST });
+
+    try {
+      const response = await apiClient.get("/jenisTindakan/All", {
+        params: { search },
+      });
+
+      dispatch({
+        type: FETCH_ALL_JENIS_TINDAKAN_SUCCESS,
+        payload: response.data.data,
+      });
+    } catch (error) {
+      dispatch({
+        type: FETCH_ALL_JENIS_TINDAKAN_FAILURE,
+        payload:
+          error.response?.data?.error ||
+          "Gagal mengambil seluruh jenis tindakan",
       });
     }
   };

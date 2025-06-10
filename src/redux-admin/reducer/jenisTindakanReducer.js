@@ -9,12 +9,16 @@ import {
   DELETE_JENIS_TINDAKAN_SUCCESS,
   UPDATE_JENIS_TINDAKAN_REQUEST,
   UPDATE_JENIS_TINDAKAN_FAILURE,
+  FETCH_ALL_JENIS_TINDAKAN_REQUEST,
+  FETCH_ALL_JENIS_TINDAKAN_SUCCESS,
+  FETCH_ALL_JENIS_TINDAKAN_FAILURE,
   SET_PAGE,
 } from "../action/jenisTindakanAction";
 
 const initialState = {
   loading: false,
-  data: [],
+  data: [], // Data dengan pagination
+  allJenisTindakan: [], // Semua data tanpa pagination
   meta: {
     totalItems: 0,
     itemCount: 0,
@@ -43,6 +47,13 @@ const jenisTindakanReducer = (state = initialState, action) => {
         meta: action.payload.meta,
       };
 
+    case FETCH_ALL_JENIS_TINDAKAN_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: action.payload,
+      };
+
     case CREATE_JENIS_TINDAKAN_SUCCESS:
       return {
         ...state,
@@ -52,11 +63,13 @@ const jenisTindakanReducer = (state = initialState, action) => {
 
     case FETCH_JENIS_TINDAKAN_FAILURE:
     case CREATE_JENIS_TINDAKAN_FAILURE:
+    case UPDATE_JENIS_TINDAKAN_FAILURE:
       return {
         ...state,
         loading: false,
         error: action.payload,
       };
+
     case UPDATE_JENIS_TINDAKAN_SUCCESS:
       return {
         ...state,
@@ -67,18 +80,12 @@ const jenisTindakanReducer = (state = initialState, action) => {
             : item
         ),
       };
+
     case UPDATE_JENIS_TINDAKAN_REQUEST:
       return {
         ...state,
         loading: true,
         error: null,
-      };
-
-    case UPDATE_JENIS_TINDAKAN_FAILURE:
-      return {
-        ...state,
-        loading: false,
-        error: action.payload,
       };
 
     case DELETE_JENIS_TINDAKAN_SUCCESS:

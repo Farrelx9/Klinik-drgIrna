@@ -68,7 +68,7 @@ export default function FieldPasien({ patient, onBack }) {
 
   // Fetch jenis tindakan dari Redux action
   useEffect(() => {
-    dispatch(tindakanActions.fetchJenisTindakan());
+    dispatch(tindakanActions.fetchAllJenisTindakan());
   }, [dispatch]);
 
   // Simpan daftar tindakan dari Redux ke state lokal
