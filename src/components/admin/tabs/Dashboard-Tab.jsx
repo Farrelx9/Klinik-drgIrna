@@ -108,7 +108,7 @@ export default function DashboardTab() {
 
           console.log("Sorted Data (terbaru di atas):", sortedData);
 
-          setTindakanTarif(sortedData.slice(0, 10));
+          setTindakanTarif(sortedData.slice(0, 5));
         }
       })
       .catch((error) => {
