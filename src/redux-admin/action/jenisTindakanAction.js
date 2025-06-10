@@ -66,7 +66,7 @@ export const createJenisTindakan = (formData) => async (dispatch) => {
       payload: response.data,
     });
 
-    dispatch(fetchJenisTindakan(1, 5, ""));
+    dispatch(fetchJenisTindakan()); // pakai default page=1, limit=100
   } catch (error) {
     dispatch({
       type: CREATE_JENIS_TINDAKAN_FAILURE,
@@ -91,7 +91,7 @@ export const updateJenisTindakan = (id, formData) => async (dispatch) => {
     });
 
     // Refresh data setelah update
-    dispatch(fetchJenisTindakan(1, 5, ""));
+    dispatch(fetchJenisTindakan()); // pakai default page=1, limit=100
     ("Jenis tindakan berhasil diperbarui");
   } catch (error) {
     dispatch({
@@ -114,7 +114,7 @@ export const deleteJenisTindakan = (id) => async (dispatch) => {
     });
 
     // Refresh data setelah hapus
-    dispatch(fetchJenisTindakan(1, 5, ""));
+    dispatch(fetchJenisTindakan()); // pakai default page=1, limit=100
     response.data.message || "Jenis tindakan berhasil dihapus";
   } catch (error) {
     dispatch({
