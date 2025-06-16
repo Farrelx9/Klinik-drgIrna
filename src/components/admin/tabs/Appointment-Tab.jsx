@@ -9,6 +9,7 @@ import {
 } from "../../../redux-admin/action/appointmentAction";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "react-toastify";
 
 // Fungsi helper untuk format waktu lokal + WIB
 const formatTimeWithWIB = (date) => {
@@ -30,7 +31,7 @@ export default function AppointmentTab() {
   );
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // Ambil currentPage & totalPages dengan fallback
   const currentPage = parseInt(meta.currentPage) || 1;
@@ -66,7 +67,7 @@ export default function AppointmentTab() {
     try {
       await dispatch(updatePaymentMethod(id, paymentMethod));
     } catch (err) {
-      alert("Gagal mengupdate metode pembayaran");
+      toast("Gagal mengupdate metode pembayaran");
     }
   };
 
@@ -120,7 +121,7 @@ export default function AppointmentTab() {
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="cancelled">Cancelled</option>
-            <option value="terpesan">Terpesan</option>
+            <option value="selesai">Selesai</option>
           </select>
         </div>
       </div>
@@ -191,18 +192,18 @@ export default function AppointmentTab() {
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         appointment.status === "confirmed"
                           ? "bg-green-100 text-green-800"
-                          : ["pending", "terpesan"].includes(appointment.status)
+                          : appointment.status === "selesai"
+                          ? "bg-blue-100 text-blue-800"
+                          : ["pending"].includes(appointment.status)
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {appointment.status === "terpesan"
-                        ? "pending"
-                        : appointment.status}
+                      {appointment.status}
                     </span>
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {appointment.status === "confirmed" ? (
+                    {["confirmed", "selesai"].includes(appointment.status) ? (
                       <select
                         value={appointment.pembayaran || ""}
                         onChange={(e) =>
@@ -223,7 +224,7 @@ export default function AppointmentTab() {
                     )}
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {["pending", "terpesan"].includes(appointment.status) ? (
+                    {["pending"].includes(appointment.status) ? (
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleConfirm(appointment.id_janji)}

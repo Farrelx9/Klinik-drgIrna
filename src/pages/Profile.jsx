@@ -17,6 +17,7 @@ import { fetchBookedAppointments } from "../redux/actions/profileActions";
 export default function Profile() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const {
     user,
     loading,
@@ -25,6 +26,7 @@ export default function Profile() {
     loadingAppointments,
     errorAppointments,
   } = useSelector((state) => state.auth);
+
   const [activeTab, setActiveTab] = useState("personal");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [otp, setOtp] = useState("");
@@ -37,6 +39,7 @@ export default function Profile() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const { totalPages } = useSelector((state) => state.auth);
+
   const [editFormData, setEditFormData] = useState({
     nama: "",
     noTelp: "",
@@ -44,6 +47,12 @@ export default function Profile() {
     tanggal_lahir: "",
     jenis_kelamin: "",
   });
+
+  // State untuk modal review
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   // Load profile data
   useEffect(() => {
@@ -80,6 +89,30 @@ export default function Profile() {
       dispatch(fetchBookedAppointments(user.pasien.id_pasien, currentPage));
     }
   }, [user, dispatch, currentPage]);
+
+  // Fungsi cek apakah janji temu bisa direview
+  const isPastOrCompleted = (appointmentDate, appointmentStatus) => {
+    const today = new Date();
+    const appointmentTime = new Date(appointmentDate);
+    return appointmentStatus === "selesai" || appointmentTime < today;
+  };
+
+  // Handler klik row janji temu
+  const handleAppointmentClick = (appointment) => {
+    if (isPastOrCompleted(appointment.tanggal_waktu, appointment.status)) {
+      setSelectedAppointment(appointment);
+      setShowReviewModal(true);
+    }
+  };
+  // Handle submit review (opsional)
+  const handleSubmitReview = () => {
+    alert(`Review submitted for ${selectedAppointment.id_janji}`);
+    console.log("Rating:", rating);
+    console.log("Komentar:", comment);
+    setShowReviewModal(false);
+    setRating(0);
+    setComment("");
+  };
 
   const handleLogout = () => {
     setShowLogoutModal(true);
@@ -495,7 +528,10 @@ export default function Profile() {
                             {bookedAppointments.map((appointment) => (
                               <tr
                                 key={appointment.id_janji}
-                                className="hover:bg-gray-50 transition-colors"
+                                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                onClick={() =>
+                                  handleAppointmentClick(appointment)
+                                }
                               >
                                 <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                                   {new Date(
@@ -525,7 +561,11 @@ export default function Profile() {
                                         ? "bg-yellow-50 text-yellow-700"
                                         : appointment.status === "cancelled"
                                         ? "bg-red-50 text-red-700"
-                                        : "bg-green-50 text-green-700"
+                                        : appointment.status === "selesai"
+                                        ? "bg-blue-50 text-blue-700"
+                                        : appointment.status === "confirmed"
+                                        ? "bg-green-50 text-green-700"
+                                        : "bg-gray-50 text-gray-700"
                                     }`}
                                   >
                                     {appointment.status === "pending" && (
@@ -573,6 +613,21 @@ export default function Profile() {
                                         />
                                       </svg>
                                     )}
+                                    {appointment.status === "completed" && (
+                                      <svg
+                                        className="w-3.5 h-3.5 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                    )}
                                     <span className="capitalize">
                                       {appointment.status === "pending"
                                         ? "Menunggu"
@@ -580,6 +635,8 @@ export default function Profile() {
                                         ? "Terkonfirmasi"
                                         : appointment.status === "cancelled"
                                         ? "Dibatalkan"
+                                        : appointment.status === "completed"
+                                        ? "Selesai"
                                         : appointment.status}
                                     </span>
                                   </span>
@@ -671,6 +728,79 @@ export default function Profile() {
                   )}
                 </div>
               )}
+              {/* MODAL REVIEW */}
+              {showReviewModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+                    <h3 className="text-xl font-bold mb-4">Beri Ulasan</h3>
+
+                    <p className="mb-4 text-sm text-gray-600">
+                      Terima kasih telah menggunakan layanan kami. Silakan
+                      berikan ulasan Anda.
+                    </p>
+
+                    {/* Rating */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">
+                        Rating
+                      </label>
+                      <div className="flex space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            type="button"
+                            key={star}
+                            onClick={() => setRating(star)}
+                            className={`text-2xl focus:outline-none ${
+                              star <= rating
+                                ? "text-yellow-500"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Komentar */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium mb-2">
+                        Komentar (opsional)
+                      </label>
+                      <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        rows="4"
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Bagikan pengalaman Anda..."
+                      />
+                    </div>
+
+                    {/* Tombol Aksi */}
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => {
+                          setShowReviewModal(false);
+                          setSelectedAppointment(null);
+                          setRating(0);
+                          setComment("");
+                        }}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        onClick={handleSubmitReview}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Kirim Ulasan
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* END OF MODAL */}
 
               {activeTab === "settings" && (
                 <div className="space-y-6">

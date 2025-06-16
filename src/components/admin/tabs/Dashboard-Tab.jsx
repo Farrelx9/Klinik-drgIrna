@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Users, ClockIcon } from "lucide-react";
 import apiClient from "../../../config/apiConfigAdmin";
+import { useDispatch } from "react-redux";
+import * as rekapActions from "../../../redux-admin/action/rekapPembayaranAction";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function DashboardTab() {
+  const dispatch = useDispatch();
   const [totalPasien, setTotalPasien] = useState(0);
   const [janjiTemuHariIni, setJanjiTemuHariIni] = useState(0);
   const [latestChats, setLatestChats] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
   const [tindakanTarif, setTindakanTarif] = useState([]);
   const [loadingTarif, setLoadingTarif] = useState(true);
+  const [monthlyTransactions, setMonthlyTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [metaChats, setMetaChats] = useState({
     totalItems: 0,
     currentPage: 1,
@@ -107,9 +122,78 @@ export default function DashboardTab() {
       });
   };
 
+  // Format currency untuk tooltip chart
+  const formatCurrencyTooltip = (value) => {
+    return `Rp ${value.toLocaleString("id-ID")}`;
+  };
+
+  // Fungsi untuk fetch rekap pembayaran dan proses menjadi bulanan
+  const fetchMonthlyTransactions = async () => {
+    setLoadingTransactions(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { limit: 100 }, // Ambil banyak data untuk analisis bulanan
+      };
+
+      const response = await apiClient.get("/rekapPembayaran", config);
+      const transactions = response.data?.data || [];
+
+      if (transactions.length === 0) {
+        console.log("Tidak ada data rekap pembayaran");
+        setMonthlyTransactions([]);
+        return;
+      }
+
+      // Kelompokkan berdasarkan bulan
+      const grouped = transactions.reduce((acc, item) => {
+        const date = new Date(item.tanggal);
+        const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
+
+        if (!acc[monthYear]) {
+          acc[monthYear] = {
+            total: 0,
+            count: 0,
+          };
+        }
+
+        acc[monthYear].total += item.total_pembayaran;
+        acc[monthYear].count += item.jumlah_transaksi;
+
+        return acc;
+      }, {});
+
+      // Format untuk chart
+      const chartData = Object.entries(grouped).map(([key, value]) => {
+        const [year, month] = key.split("-");
+        const monthName = new Date(year, month - 1).toLocaleString("id-ID", {
+          month: "long",
+          year: "numeric",
+        });
+
+        return {
+          month: monthName,
+          total: value.total,
+          jumlahTransaksi: value.count,
+        };
+      });
+
+      setMonthlyTransactions(chartData);
+    } catch (error) {
+      console.error("Error fetching monthly transactions:", error);
+      setMonthlyTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -145,7 +229,7 @@ export default function DashboardTab() {
     // Fetch Konsultasi Terbaru
     fetchChats(1);
 
-    // Fetch Tarif Tindakan + Sortir Berdasarkan createdAt
+    // Fetch Tarif Tindakan
     setLoadingTarif(true);
     apiClient
       .get("/jenisTindakan/getAll?_=" + Date.now(), config)
@@ -160,6 +244,9 @@ export default function DashboardTab() {
       .finally(() => {
         setLoadingTarif(false);
       });
+
+    // Fetch transaksi bulanan
+    fetchMonthlyTransactions();
   }, []);
 
   // Ganti Pagination UI dengan versi lebih modern dan user-friendly
@@ -172,12 +259,12 @@ export default function DashboardTab() {
     // Show first, last, current, and neighbors
     for (let i = 1; i <= maxPage; i++) {
       if (i === 1 || i === maxPage || (i >= curr - 1 && i <= curr + 1)) {
-        pages.push(i);
+        pages.push({ type: "number", value: i });
       } else if (
         (i === curr - 2 && curr > 3) ||
         (i === curr + 2 && curr < maxPage - 2)
       ) {
-        pages.push("...");
+        pages.push({ type: "ellipsis", value: "..." });
       }
     }
 
@@ -192,11 +279,11 @@ export default function DashboardTab() {
           Prev
         </button>
         {pages.map((page, idx) => {
-          if (page === "...") {
+          if (page.type === "ellipsis") {
             if (lastWasEllipsis) return null;
             lastWasEllipsis = true;
             return (
-              <span key={idx} className="px-2 text-gray-400">
+              <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">
                 ...
               </span>
             );
@@ -204,15 +291,15 @@ export default function DashboardTab() {
           lastWasEllipsis = false;
           return (
             <button
-              key={page}
-              onClick={() => fetchChats(page)}
+              key={`page-${page.value}`}
+              onClick={() => fetchChats(page.value)}
               className={`px-3 py-1 rounded border text-sm transition-colors duration-150 ${
-                currentPage === page
+                currentPage === page.value
                   ? "bg-blue-600 text-white border-blue-600 shadow"
                   : "bg-white text-gray-700 hover:bg-blue-50 border-gray-300"
               }`}
             >
-              {page}
+              {page.value}
             </button>
           );
         })}
@@ -261,6 +348,64 @@ export default function DashboardTab() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Chart Transaksi Bulanan */}
+      <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Transaksi Bulanan</h2>
+        {loadingTransactions ? (
+          <div className="h-80 flex items-center justify-center">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : monthlyTransactions.length === 0 ? (
+          <div className="h-80 flex items-center justify-center text-gray-500">
+            Tidak ada data transaksi
+          </div>
+        ) : (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={monthlyTransactions}
+                margin={{
+                  top: 20,
+                  right: 20,
+                  left: 20,
+                  bottom: 50,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" angle={-45} textAnchor="end" dy={10} />
+                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "Jumlah Transaksi") {
+                      return [value, "Jumlah Transaksi"];
+                    }
+                    return [value, "Total Pembayaran"];
+                  }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  align="center"
+                  wrapperStyle={{ top: 0, left: 0, right: 0 }}
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="total"
+                  name="Total Pembayaran"
+                  fill="#8884d8"
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="jumlahTransaksi"
+                  name="Jumlah Transaksi"
+                  fill="#82ca9d"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
 
       {/* Daftar Konsultasi Terbaru & Tarif Tindakan */}

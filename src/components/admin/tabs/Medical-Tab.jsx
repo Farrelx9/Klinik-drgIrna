@@ -512,6 +512,8 @@ export default function MedicalTab() {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  max={new Date().toISOString().split("T")[0]}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
 

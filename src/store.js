@@ -14,6 +14,7 @@ import konsultasiSlice from "./redux/reducers/konsultasiSlice";
 import pembayaranSlice from "./redux/reducers/pembayaranSlice";
 import chatSlice from "./redux/reducers/chatSlice";
 import chatAdminSlice from "./redux-admin/reducer/adminChatSlice";
+import rekapPembayaranReducer from "./redux-admin/reducer/rekapPembayaranReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   pembayaran: pembayaranSlice,
   chat: chatSlice,
   chatAdmin: chatAdminSlice,
+  rekapPembayaran: rekapPembayaranReducer,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));
