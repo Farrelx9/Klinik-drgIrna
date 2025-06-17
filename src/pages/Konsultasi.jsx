@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, User, ArrowLeft } from "lucide-react";
+import { ChevronLeft, User } from "lucide-react";
 import {
   getChatListForUser,
   getChatDetailForUser,
@@ -8,24 +8,33 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { submitReview } from "../redux/actions/reviewAction";
 
 export default function Konsultasi() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { chatList, activeChat, meta, isLoading, error } = useSelector(
-    (state) => state.chat
-  );
+  const {
+    chatList,
+    activeChat,
+    meta,
+    isLoading,
+    error: chatError,
+  } = useSelector((state) => state.chat);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [pesanInput, setPesanInput] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(meta.totalPages);
+  const [totalPages, setTotalPages] = useState(meta?.totalPages || 1);
   const [isInputFocused, setIsInputFocused] = useState(false);
-
   const { id_chat } = useParams();
 
-  // Ambil id_pasien dari localStorage
+  // Ambil data pengguna dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const id_pasien = user?.pasien?.id_pasien;
+
+  // State untuk modal review
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [rating, setRating] = useState(null); // null berarti belum dipilih
+  const [comment, setComment] = useState("");
 
   // Load list chat saat komponen mount atau page berubah
   useEffect(() => {
@@ -34,7 +43,6 @@ export default function Konsultasi() {
       navigate("/login");
       return;
     }
-
     dispatch(getChatListForUser({ id_pasien, page, limit: 5 }));
   }, [dispatch, id_pasien, page]);
 
@@ -55,19 +63,13 @@ export default function Konsultasi() {
   // Implement polling for new messages
   useEffect(() => {
     let intervalId;
-    // Poll only if a chat is selected AND input area is focused
     if (selectedChatId && isInputFocused) {
       intervalId = setInterval(() => {
         dispatch(getChatDetailForUser(selectedChatId));
-        console.log("Polling for new messages..."); // Optional: for debugging
-      }, 2000); // Poll every 3 seconds (adjust as needed)
+      }, 2000);
     }
-
     return () => {
-      // Clean up the interval
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      if (intervalId) clearInterval(intervalId);
     };
   }, [dispatch, selectedChatId, isInputFocused]);
 
@@ -77,18 +79,15 @@ export default function Konsultasi() {
   };
 
   const handleKirimPesan = (e) => {
-    e.preventDefault(); // ⚠️ Cegah refresh halaman
-
+    e.preventDefault(); // Cegah refresh halaman
     if (!activeChat || activeChat.status !== "aktif") {
       toast.warn("Sesi belum aktif");
       return;
     }
-
     if (!pesanInput.trim()) {
       toast.warn("Isi pesan tidak boleh kosong");
       return;
     }
-
     dispatch(
       kirimPesanPasien({
         isi: pesanInput,
@@ -106,6 +105,38 @@ export default function Konsultasi() {
       });
   };
 
+  const handleSubmitReview = () => {
+    if (rating === null || rating < 1 || rating > 5) {
+      toast.warn("Pilih rating antara 1 hingga 5");
+      return;
+    }
+    dispatch(
+      submitReview({
+        id_pasien,
+        id_janji: selectedChatId,
+        rating,
+        komentar: comment,
+      })
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Ulasan berhasil dikirim!");
+        setShowReviewModal(false);
+        setRating(null);
+        setComment("");
+      })
+      .catch((err) => {
+        toast.error("Gagal mengirim ulasan.");
+        console.error("Error submitting review:", err);
+      });
+  };
+
+  const handleCloseModal = () => {
+    setShowReviewModal(false);
+    setRating(null);
+    setComment("");
+  };
+
   return (
     <div className="grid md:grid-cols-3 gap-6 h-[calc(100vh-8rem)]">
       {/* Daftar Chat */}
@@ -113,17 +144,16 @@ export default function Konsultasi() {
         <div className="p-4 border-b">
           <div className="flex items-center">
             <button onClick={() => navigate("/")} className="mr-2">
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <ChevronLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h2 className="text-lg font-semibold">Riwayat Chat</h2>
           </div>
         </div>
-
         <div className="overflow-y-auto max-h-[70vh] p-4 space-y-3">
           {isLoading ? (
             <p className="text-center text-gray-500">Memuat...</p>
-          ) : error ? (
-            <p className="text-center text-red-500">{error}</p>
+          ) : chatError ? (
+            <p className="text-center text-red-500">{chatError}</p>
           ) : Array.isArray(chatList) && chatList.length > 0 ? (
             chatList.map((chat) => (
               <div
@@ -156,7 +186,6 @@ export default function Konsultasi() {
             <p className="text-center text-gray-400">Tidak ada percakapan</p>
           )}
         </div>
-
         {/* Pagination Controls */}
         <div className="p-4 border-t">
           <div className="flex justify-between items-center">
@@ -188,7 +217,6 @@ export default function Konsultasi() {
           </div>
         </div>
       </div>
-
       {/* Detail Chat */}
       <div className="col-span-2 bg-white rounded-lg shadow overflow-hidden flex flex-col">
         {selectedChatId && activeChat ? (
@@ -218,7 +246,6 @@ export default function Konsultasi() {
                 </div>
               </div>
             </div>
-
             {/* Riwayat Pesan */}
             <div className="flex-grow p-4 overflow-y-auto space-y-4">
               {Array.isArray(activeChat.messages) &&
@@ -257,7 +284,6 @@ export default function Konsultasi() {
                 </div>
               )}
             </div>
-
             {/* Input Chat */}
             <div className="p-4 border-t">
               <form onSubmit={handleKirimPesan}>
@@ -292,6 +318,19 @@ export default function Konsultasi() {
                 </div>
               </form>
             </div>
+            {/* Tombol Review */}
+            {activeChat.status === "selesai" &&
+              // Check if there are any reviews for this chat
+              !activeChat.reviews?.length && (
+                <div className="p-4 border-t">
+                  <button
+                    onClick={() => setShowReviewModal(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors w-full"
+                  >
+                    Beri Ulasan
+                  </button>
+                </div>
+              )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -301,6 +340,71 @@ export default function Konsultasi() {
           </div>
         )}
       </div>
+      {/* MODAL REVIEW */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-xl font-bold mb-4">Beri Ulasan</h3>
+            <p className="mb-4 text-sm text-gray-600">
+              Terima kasih telah menggunakan layanan kami. Silakan berikan
+              ulasan Anda.
+            </p>
+            {/* Rating */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Rating</label>
+              <div className="flex space-x-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className={`text-2xl focus:outline-none ${
+                      rating !== null && star <= rating
+                        ? "text-yellow-500"
+                        : "text-gray-300"
+                    }`}
+                  >
+                    ⭐
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Komentar */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">
+                Komentar (opsional)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows="4"
+                className="w-full border rounded px-3 py-2"
+                placeholder="Bagikan pengalaman Anda..."
+              />
+            </div>
+            {/* Tombol Aksi */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSubmitReview}
+                disabled={rating === null || rating < 1 || rating > 5}
+                className={`px-4 py-2 rounded ${
+                  rating >= 1 && rating <= 5
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-blue-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                Kirim Ulasan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

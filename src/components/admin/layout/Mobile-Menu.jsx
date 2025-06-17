@@ -144,6 +144,21 @@ export default function MobileMenu({ activeTab, handleTabChange }) {
             <ScrollText className="h-5 w-5" />
             <span>Rekap Pembayaran</span>
           </a>
+          <a
+            href="#"
+            className={`flex items-center space-x-2 p-3 rounded-md ${
+              activeTab === "review"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleTabChange("review");
+            }}
+          >
+            <ScrollText className="h-5 w-5" />
+            <span>Review</span>
+          </a>
         </nav>
       </div>
       <div className="mb-6"></div>

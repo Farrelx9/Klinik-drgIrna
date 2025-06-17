@@ -15,6 +15,8 @@ import pembayaranSlice from "./redux/reducers/pembayaranSlice";
 import chatSlice from "./redux/reducers/chatSlice";
 import chatAdminSlice from "./redux-admin/reducer/adminChatSlice";
 import rekapPembayaranReducer from "./redux-admin/reducer/rekapPembayaranReducer";
+import reviewSlice from "./redux/reducers/reviewSlice";
+import reviewAdminSlice from "./redux-admin/reducer/reviewAdminSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -31,6 +33,8 @@ const rootReducer = combineReducers({
   chat: chatSlice,
   chatAdmin: chatAdminSlice,
   rekapPembayaran: rekapPembayaranReducer,
+  review: reviewSlice,
+  reviewAdmin: reviewAdminSlice,
 });
 
 const store = createStore(rootReducer, applyMiddleware(thunk));

@@ -18,6 +18,7 @@ import JenisTindakan from "../components/admin/tabs/Jenis-Tindakan";
 import RekapPembayaran from "../components/admin/tabs/RekapPembayaran";
 import { useNavigate } from "react-router-dom";
 import Schedule from "../components/admin/tabs/Schedule";
+import Review from "../components/admin/tabs/Review";
 
 export default function DashboardAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -136,6 +137,9 @@ export default function DashboardAdmin() {
 
           {/* Rekap Pembayaran Content */}
           {activeTab === "rekapPembayaran" && <RekapPembayaran />}
+
+          {/* Rekap Pembayaran Content */}
+          {activeTab === "review" && <Review />}
         </main>
       </div>
     </div>

@@ -28,7 +28,8 @@ export const getChatDetailForUser = createAsyncThunk(
   async (id_chat, { rejectWithValue }) => {
     try {
       const response = await apiClient.get(
-        `/konsultasi/chat/admin/detail/${id_chat}`
+        `/konsultasi/chat/admin/detail/${id_chat}`,
+        { include: { reviews: true } }
       );
       return response.data.data;
     } catch (error) {

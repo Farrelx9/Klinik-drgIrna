@@ -9,10 +9,13 @@ import {
   changePassword,
 } from "../redux/actions/authActions";
 import { updateProfile as profileActionsUpdateProfile } from "../redux/actions/profileActions";
+import { formatDate, formatTimeWithWIB } from "../utils/timeUtils";
 import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
 import defaultProfile from "../assets/images/drg irna.png";
 import { useNavigate } from "react-router-dom";
 import { fetchBookedAppointments } from "../redux/actions/profileActions";
+import { submitReview } from "../redux/actions/reviewAction";
+import { toast } from "react-toastify";
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -97,19 +100,46 @@ export default function Profile() {
     return appointmentStatus === "selesai" || appointmentTime < today;
   };
 
-  // Handler klik row janji temu
+  // Ganti fungsi handleAppointmentClick
   const handleAppointmentClick = (appointment) => {
+    const alreadyReviewed = appointment.review && appointment.review.length > 0;
+
     if (isPastOrCompleted(appointment.tanggal_waktu, appointment.status)) {
-      setSelectedAppointment(appointment);
-      setShowReviewModal(true);
+      if (!alreadyReviewed) {
+        setSelectedAppointment(appointment);
+        setShowReviewModal(true);
+      } else {
+        toast.info("Anda sudah memberikan ulasan untuk janji ini.");
+      }
     }
   };
-  // Handle submit review (opsional)
+
+  // Handle submit review
   const handleSubmitReview = () => {
-    alert(`Review submitted for ${selectedAppointment.id_janji}`);
-    console.log("Rating:", rating);
-    console.log("Komentar:", comment);
+    const id_pasien = user.pasien?.id_pasien;
+    const id_janji = selectedAppointment.id_janji;
+
+    // Kirim review via Redux
+    dispatch(
+      submitReview({
+        id_pasien,
+        id_janji,
+        rating,
+        komentar: comment,
+      })
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Ulasan berhasil dikirim!");
+      })
+      .catch((error) => {
+        toast.error("Gagal mengirim ulasan.");
+        console.error("Error submitting review:", error);
+      });
+
+    // Reset state
     setShowReviewModal(false);
+    setSelectedAppointment(null);
     setRating(0);
     setComment("");
   };
@@ -522,6 +552,9 @@ export default function Profile() {
                               <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
                                 Dokter
                               </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Rating
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
@@ -534,22 +567,10 @@ export default function Profile() {
                                 }
                               >
                                 <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
-                                  {new Date(
-                                    appointment.tanggal_waktu
-                                  ).toLocaleDateString("id-ID", {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  })}
+                                  {formatDate(appointment.tanggal_waktu)}
                                 </td>
                                 <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
-                                  {new Date(
-                                    appointment.tanggal_waktu
-                                  ).toLocaleTimeString("id-ID", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
+                                  {formatTimeWithWIB(appointment.waktu_janji)}
                                 </td>
                                 <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
                                   {appointment.keluhan || "-"}
@@ -642,7 +663,19 @@ export default function Profile() {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
-                                  {appointment.dokter || "-"}
+                                  {appointment.dokter || "drg. Irna"}
+                                </td>
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {appointment.review &&
+                                  appointment.review.length > 0 ? (
+                                    <span className="text-yellow-500">
+                                      ⭐ {appointment.review[0].rating}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400">
+                                      Belum direview
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                             ))}
@@ -733,7 +766,6 @@ export default function Profile() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
                     <h3 className="text-xl font-bold mb-4">Beri Ulasan</h3>
-
                     <p className="mb-4 text-sm text-gray-600">
                       Terima kasih telah menggunakan layanan kami. Silakan
                       berikan ulasan Anda.
@@ -799,7 +831,6 @@ export default function Profile() {
                   </div>
                 </div>
               )}
-
               {/* END OF MODAL */}
 
               {activeTab === "settings" && (

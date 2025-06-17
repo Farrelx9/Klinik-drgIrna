@@ -3,6 +3,7 @@ import { Calendar, Users, ClockIcon } from "lucide-react";
 import apiClient from "../../../config/apiConfigAdmin";
 import { useDispatch } from "react-redux";
 import * as rekapActions from "../../../redux-admin/action/rekapPembayaranAction";
+import { fetchReviews } from "../../../redux-admin/action/reviewAction";
 import {
   BarChart,
   Bar,
@@ -13,6 +14,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { formatDateTimeWithWIB } from "../../../utils/timeUtils";
 
 export default function DashboardTab() {
   const dispatch = useDispatch();
@@ -32,6 +34,8 @@ export default function DashboardTab() {
     hasPrevPage: false,
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [averageReviewRating, setAverageReviewRating] = useState(0);
+  const [loadingAverageReview, setLoadingAverageReview] = useState(true);
 
   // Helper function: Format waktu (HH:mm)
   const formatTime = (isoString) => {
@@ -69,39 +73,38 @@ export default function DashboardTab() {
     return `Rp ${amount.toLocaleString("id-ID")}`;
   };
 
-  // Tambahkan di atas komponen
-  const formatTanggal = (isoString) => {
-    if (!isoString) return "-";
-    const date = new Date(isoString);
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
+  // Commented out to use formatDateTimeWithWIB from timeUtils
+  // const formatTanggal = (isoString) => {
+  //   if (!isoString) return "-";
+  //   const date = new Date(isoString);
+  //   return date.toLocaleDateString("id-ID", {
+  //     day: "numeric",
+  //     month: "long",
+  //     year: "numeric",
+  //   });
+  // };
 
-  const formatJam = (jamString) => {
-    if (!jamString) return "-";
-    return jamString.replace(".", ":") + " WIB";
-  };
+  // const formatJam = (jamString) => {
+  //   if (!jamString) return "-";
+  //   return jamString.replace(".", ":") + " WIB";
+  // };
 
-  // Tambahkan di atas komponen
-  const formatJamFromISO = (isoString) => {
-    if (!isoString) return "-";
-    const date = new Date(isoString);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes} WIB`;
-  };
+  // const formatJamFromISO = (isoString) => {
+  //   if (!isoString) return "-";
+  //   const date = new Date(isoString);
+  //   const hours = date.getHours().toString().padStart(2, "0");
+  //   const minutes = date.getMinutes().toString().padStart(2, "0");
+  //   return `${hours}:${minutes} WIB`;
+  // };
 
-  const formatJamWIB = (isoString) => {
-    if (!isoString) return "-";
-    const date = new Date(isoString);
-    let hours = date.getUTCHours() + 7; // UTC + 7 for WIB
-    if (hours >= 24) hours -= 24;
-    const minutes = date.getUTCMinutes().toString().padStart(2, "0");
-    return `${hours.toString().padStart(2, "0")}:${minutes} WIB`;
-  };
+  // const formatJamWIB = (isoString) => {
+  //   if (!isoString) return "-";
+  //   const date = new Date(isoString);
+  //   let hours = date.getUTCHours() + 7; // UTC + 7 for WIB
+  //   if (hours >= 24) hours -= 24;
+  //   const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+  //   return `${hours.toString().padStart(2, "0")}:${minutes} WIB`;
+  // };
 
   const fetchChats = (page = 1) => {
     setLoadingChats(true);
@@ -245,6 +248,30 @@ export default function DashboardTab() {
         setLoadingTarif(false);
       });
 
+    // Fetch average review rating
+    setLoadingAverageReview(true);
+    dispatch(fetchReviews({ page: 1, limit: 1000 })) // Fetch enough reviews to calculate average
+      .unwrap()
+      .then((response) => {
+        const reviews = response.data || [];
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce(
+            (sum, review) => sum + review.rating,
+            0
+          );
+          setAverageReviewRating((totalRating / reviews.length).toFixed(1)); // To one decimal place
+        } else {
+          setAverageReviewRating(0); // No reviews
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching reviews for average rating:", error);
+        setAverageReviewRating("N/A");
+      })
+      .finally(() => {
+        setLoadingAverageReview(false);
+      });
+
     // Fetch transaksi bulanan
     fetchMonthlyTransactions();
   }, []);
@@ -348,6 +375,34 @@ export default function DashboardTab() {
             </div>
           </div>
         </div>
+
+        {/* Average Review Rating */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-yellow-100 text-yellow-500 mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:w-6 md:h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557L3.102 9.333c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 0 0 .475-.345l2.125-5.112Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Rata-rata Review</p>
+              <p className="text-xl md:text-2xl font-bold">
+                {loadingAverageReview ? "Loading..." : averageReviewRating}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Chart Transaksi Bulanan */}
@@ -370,7 +425,7 @@ export default function DashboardTab() {
                   top: 20,
                   right: 20,
                   left: 20,
-                  bottom: 50,
+                  bottom: 70,
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -436,15 +491,16 @@ export default function DashboardTab() {
                       <div className="flex items-center gap-2.5">
                         <Calendar className="w-5 h-5 text-blue-500" />
                         <span className="text-gray-700 font-medium">
-                          {formatTanggal(chat.waktu_mulai)}
+                          {formatDateTimeWithWIB(chat.waktu_mulai)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2.5">
+                      {/* The time is already included in formatDateTimeWithWIB, so this line is commented out */}
+                      {/* <div className="flex items-center gap-2.5">
                         <ClockIcon className="w-5 h-5 text-blue-500" />
                         <span className="text-gray-700 font-medium">
                           {formatJamWIB(chat.waktu_mulai)}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                     <div className="mb-2">
                       <span className="font-semibold">
