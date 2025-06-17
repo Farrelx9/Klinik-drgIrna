@@ -46,7 +46,7 @@ export const kirimPesanAdmin = createAsyncThunk(
     try {
       const response = await apiClient.post("/konsultasi/chat/kirim", {
         isi,
-        pengirim: "admin",
+        pengirim: "dokter",
         id_chat,
       });
       return response.data.data;
@@ -86,6 +86,35 @@ export const akhiriSesiAdmin = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Gagal mengakhiri sesi"
+      );
+    }
+  }
+);
+
+export const fetchUnreadCountAdmin = async (id_chat) => {
+  const token = localStorage.getItem("token");
+  const res = await apiClient.get(`/konsultasi/${id_chat}/unread`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data.data.unread_count;
+};
+
+export const markAllMessagesAsReadAdminThunk = createAsyncThunk(
+  "chatAdmin/markAllMessagesAsReadAdmin",
+  async (id_chat, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      await apiClient.patch(
+        `/konsultasi/${id_chat}/mark-read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return id_chat;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Gagal mark as read"
       );
     }
   }

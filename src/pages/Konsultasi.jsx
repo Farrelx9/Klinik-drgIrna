@@ -4,11 +4,16 @@ import {
   getChatListForUser,
   getChatDetailForUser,
   kirimPesanPasien,
+  fetchUnreadCountUser,
+  markAllMessagesAsReadUser,
 } from "../redux/actions/chatActions";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { submitReview } from "../redux/actions/reviewAction";
+
+console.log("==== Konsultasi.jsx loaded ====");
+console.log("fetchUnreadCountUser:", fetchUnreadCountUser);
 
 export default function Konsultasi() {
   const dispatch = useDispatch();
@@ -35,6 +40,9 @@ export default function Konsultasi() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [rating, setRating] = useState(null); // null berarti belum dipilih
   const [comment, setComment] = useState("");
+
+  // Tambahkan state unreadCounts
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   // Load list chat saat komponen mount atau page berubah
   useEffect(() => {
@@ -73,8 +81,39 @@ export default function Konsultasi() {
     };
   }, [dispatch, selectedChatId, isInputFocused]);
 
-  const handleChatSelect = (chat) => {
+  useEffect(() => {
+    console.log("chatList di useEffect:", chatList);
+    if (chatList.length > 0) {
+      Promise.all(
+        chatList.map((chat) => {
+          console.log("Cek unread untuk chat:", chat.id_chat);
+          return fetchUnreadCountUser(chat.id_chat)
+            .then((count) => {
+              console.log("Unread untuk", chat.id_chat, ":", count);
+              return { id: chat.id_chat, count };
+            })
+            .catch((err) => {
+              console.error("Error fetch unread:", err);
+              return { id: chat.id_chat, count: 0 };
+            });
+        })
+      ).then((results) => {
+        const counts = {};
+        results.forEach(({ id, count }) => {
+          counts[id] = count;
+        });
+        console.log("Unread counts di frontend:", counts);
+        setUnreadCounts(counts);
+      });
+    }
+  }, [chatList]);
+
+  const handleChatSelect = async (chat) => {
     setSelectedChatId(chat.id_chat);
+    await markAllMessagesAsReadUser(chat.id_chat);
+    // Refresh unread count
+    const count = await fetchUnreadCountUser(chat.id_chat);
+    setUnreadCounts((prev) => ({ ...prev, [chat.id_chat]: count }));
     dispatch(getChatDetailForUser(chat.id_chat));
   };
 
@@ -163,8 +202,13 @@ export default function Konsultasi() {
                   selectedChatId === chat.id_chat ? "bg-blue-50" : ""
                 }`}
               >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <div className="relative w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                   <User size={16} />
+                  {unreadCounts[chat.id_chat] > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white">
+                      {unreadCounts[chat.id_chat]}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">

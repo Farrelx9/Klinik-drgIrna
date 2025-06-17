@@ -14,6 +14,12 @@ export default function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { notifications = [] } = useSelector(
+    (state) => state.notification || {}
+  );
+
+  // Count unread notifications
+  const unreadCount = notifications.filter((notif) => !notif.is_read).length;
 
   // Auth initialization effect
   useEffect(() => {
@@ -128,7 +134,7 @@ export default function Navbar() {
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={handleNotification}
-                      className="text-gray-700 hover:text-[#1B56FD] transition-colors"
+                      className="text-gray-700 hover:text-[#1B56FD] transition-colors relative"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -144,6 +150,11 @@ export default function Navbar() {
                           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                         />
                       </svg>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                     <button
                       onClick={handleProfile}
@@ -232,7 +243,7 @@ export default function Navbar() {
                   <div className="space-y-4">
                     <button
                       onClick={handleNotification}
-                      className="flex items-center space-x-2 text-gray-700 hover:text-[#1B56FD] transition-colors"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-[#1B56FD] transition-colors relative"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -249,6 +260,11 @@ export default function Navbar() {
                         />
                       </svg>
                       <span>Notifikasi</span>
+                      {unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                     <button
                       onClick={handleProfile}

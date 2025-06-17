@@ -9,6 +9,7 @@ import {
 
 const initialState = {
   chatList: [],
+  unreadCounts: {}, // ← Tambah ini
   activeChat: null,
   meta: {
     currentPage: 1,
@@ -28,6 +29,9 @@ const chatAdminSlice = createSlice({
     resetChat: () => initialState,
     clearError: (state) => {
       state.error = null;
+    },
+    setUnreadCounts: (state, action) => {
+      state.unreadCounts = action.payload; // { id_chat: count }
     },
   },
   extraReducers(builder) {
@@ -134,6 +138,7 @@ const chatAdminSlice = createSlice({
   },
 });
 
-export const { resetChat, clearError } = chatAdminSlice.actions;
+export const { resetChat, clearError, setUnreadCounts } =
+  chatAdminSlice.actions;
 
 export default chatAdminSlice.reducer;

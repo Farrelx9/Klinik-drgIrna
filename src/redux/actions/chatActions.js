@@ -58,3 +58,22 @@ export const kirimPesanPasien = createAsyncThunk(
     }
   }
 );
+
+export const fetchUnreadCountUser = async (id_chat) => {
+  const token = localStorage.getItem("token");
+  const res = await apiClient.get(`/konsultasi/${id_chat}/unread`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data.data.unread_count;
+};
+
+export const markAllMessagesAsReadUser = async (id_chat) => {
+  const token = localStorage.getItem("token");
+  await apiClient.patch(
+    `/konsultasi/${id_chat}/mark-read`,
+    {},
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+};

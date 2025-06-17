@@ -8,9 +8,12 @@ import {
   kirimPesanAdmin,
   aktifkanSesi,
   akhiriSesiAdmin,
+  markAllMessagesAsReadAdminThunk,
+  fetchUnreadCountAdmin,
 } from "../../../redux-admin/action/adminChatAction";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { setUnreadCounts } from "../../../redux-admin/reducer/adminChatSlice";
 
 export default function ChatTab({ isMobile }) {
   const dispatch = useDispatch();
@@ -24,6 +27,7 @@ export default function ChatTab({ isMobile }) {
   const [totalPages, setTotalPages] = useState(meta.totalPages || 1);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
+  const unreadCounts = useSelector((state) => state.chatAdmin.unreadCounts);
 
   useEffect(() => {
     if (userRole !== "dokter") return;
@@ -62,8 +66,43 @@ export default function ChatTab({ isMobile }) {
     }
   }, [selectedChatId, dispatch, userRole]);
 
-  const handleChatSelect = (chat) => {
+  useEffect(() => {
+    if (chatList.length > 0) {
+      Promise.all(
+        chatList.map((chat) =>
+          fetchUnreadCountAdmin(chat.id_chat).then((count) => ({
+            id: chat.id_chat,
+            count,
+          }))
+        )
+      ).then((results) => {
+        const counts = {};
+        results.forEach(({ id, count }) => {
+          counts[id] = count;
+        });
+        dispatch(setUnreadCounts(counts));
+        console.log("Unread counts:", counts);
+      });
+    }
+  }, [chatList, dispatch]);
+
+  const handleChatSelect = async (chat) => {
     setSelectedChatId(chat.id_chat);
+
+    // Mark all messages as read via thunk
+    const result = await dispatch(
+      markAllMessagesAsReadAdminThunk(chat.id_chat)
+    );
+    if (markAllMessagesAsReadAdminThunk.fulfilled.match(result)) {
+      // Setelah mark as read, fetch unread count ulang agar bubble hilang
+      const count = await fetchUnreadCountAdmin(chat.id_chat);
+      dispatch(setUnreadCounts({ ...unreadCounts, [chat.id_chat]: count }));
+    } else {
+      toast.error(result.payload || "Gagal mark as read");
+    }
+
+    // Fetch detail chat seperti biasa
+    dispatch(getChatDetail(chat.id_chat));
   };
 
   const handleKirimPesan = (e) => {
@@ -82,7 +121,7 @@ export default function ChatTab({ isMobile }) {
     dispatch(
       kirimPesanAdmin({
         isi: pesanInput,
-        pengirim: "admin",
+        pengirim: "dokter",
         id_chat: activeChat.id_chat,
       })
     )
@@ -166,8 +205,13 @@ export default function ChatTab({ isMobile }) {
               <button onClick={() => setSelectedChatId(null)} className="mr-2">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3 relative">
                 <User className="h-5 w-5" />
+                {unreadCounts[selectedChatId] > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white">
+                    {unreadCounts[selectedChatId]}
+                  </span>
+                )}
               </div>
               <div>
                 <div className="font-medium">
@@ -311,8 +355,13 @@ export default function ChatTab({ isMobile }) {
                     className="p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center"
                     onClick={() => handleChatSelect(chat)}
                   >
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3 relative">
                       <User className="h-5 w-5" />
+                      {unreadCounts[chat.id_chat] > 0 && (
+                        <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white">
+                          {unreadCounts[chat.id_chat]}
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
@@ -404,8 +453,13 @@ export default function ChatTab({ isMobile }) {
                   className="p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center"
                   onClick={() => handleChatSelect(chat)}
                 >
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3 relative">
                     <User className="h-5 w-5" />
+                    {unreadCounts[chat.id_chat] > 0 && (
+                      <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white">
+                        {unreadCounts[chat.id_chat]}
+                      </span>
+                    )}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
@@ -479,8 +533,13 @@ export default function ChatTab({ isMobile }) {
         {activeChat ? (
           <div className="col-span-2 bg-white rounded-lg shadow overflow-hidden flex flex-col">
             <div className="p-4 border-b flex items-center">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3 relative">
                 <User className="h-5 w-5" />
+                {unreadCounts[activeChat.id_chat] > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white">
+                    {unreadCounts[activeChat.id_chat]}
+                  </span>
+                )}
               </div>
               <div>
                 <div className="font-medium">
