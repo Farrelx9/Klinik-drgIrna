@@ -12,9 +12,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { submitReview } from "../redux/actions/reviewAction";
 
-console.log("==== Konsultasi.jsx loaded ====");
-console.log("fetchUnreadCountUser:", fetchUnreadCountUser);
-
 export default function Konsultasi() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -82,18 +79,14 @@ export default function Konsultasi() {
   }, [dispatch, selectedChatId, isInputFocused]);
 
   useEffect(() => {
-    console.log("chatList di useEffect:", chatList);
     if (chatList.length > 0) {
       Promise.all(
         chatList.map((chat) => {
-          console.log("Cek unread untuk chat:", chat.id_chat);
           return fetchUnreadCountUser(chat.id_chat)
             .then((count) => {
-              console.log("Unread untuk", chat.id_chat, ":", count);
               return { id: chat.id_chat, count };
             })
             .catch((err) => {
-              console.error("Error fetch unread:", err);
               return { id: chat.id_chat, count: 0 };
             });
         })
@@ -102,7 +95,7 @@ export default function Konsultasi() {
         results.forEach(({ id, count }) => {
           counts[id] = count;
         });
-        console.log("Unread counts di frontend:", counts);
+
         setUnreadCounts(counts);
       });
     }
@@ -139,7 +132,6 @@ export default function Konsultasi() {
         toast.success("Pesan berhasil dikirim");
       })
       .catch((err) => {
-        console.error("Error saat mengirim pesan:", err);
         toast.error("Gagal mengirim pesan: " + (err || "Server error"));
       });
   };
@@ -152,7 +144,7 @@ export default function Konsultasi() {
     dispatch(
       submitReview({
         id_pasien,
-        id_janji: selectedChatId,
+        id_konsultasi: selectedChatId,
         rating,
         komentar: comment,
       })
@@ -163,6 +155,7 @@ export default function Konsultasi() {
         setShowReviewModal(false);
         setRating(null);
         setComment("");
+        dispatch(getChatDetailForUser(selectedChatId));
       })
       .catch((err) => {
         toast.error("Gagal mengirim ulasan.");
@@ -364,8 +357,8 @@ export default function Konsultasi() {
             </div>
             {/* Tombol Review */}
             {activeChat.status === "selesai" &&
-              // Check if there are any reviews for this chat
-              !activeChat.reviews?.length && (
+              (!Array.isArray(activeChat.review) ||
+                activeChat.review.length === 0) && (
                 <div className="p-4 border-t">
                   <button
                     onClick={() => setShowReviewModal(true)}
@@ -375,16 +368,55 @@ export default function Konsultasi() {
                   </button>
                 </div>
               )}
+            {Array.isArray(activeChat.review) &&
+              activeChat.review.length > 0 && (
+                <div className="p-4 border-t">
+                  <h4 className="font-semibold mb-2">Ulasan Anda</h4>
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={
+                            i < activeChat.review[0].rating
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                      <span className="text-sm text-gray-600 ml-2">
+                        {activeChat.review[0].rating}/5
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {activeChat.review[0].createdAt
+                        ? new Date(
+                            activeChat.review[0].createdAt
+                          ).toLocaleDateString("id-ID")
+                        : ""}
+                    </div>
+                    <div className="text-sm text-gray-700 mt-2">
+                      {activeChat.review[0].komentar || (
+                        <span className="italic text-gray-400">
+                          Tidak ada komentar.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <p className="text-gray-500">
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-center text-gray-400">
               Pilih percakapan dari daftar di samping
             </p>
           </div>
         )}
       </div>
-      {/* MODAL REVIEW */}
+      {/* Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
@@ -408,7 +440,7 @@ export default function Konsultasi() {
                         : "text-gray-300"
                     }`}
                   >
-                    ⭐
+                    ★
                   </button>
                 ))}
               </div>
