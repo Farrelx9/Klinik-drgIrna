@@ -3,17 +3,48 @@ import { useDispatch, useSelector } from "react-redux";
 import JadwalCard from "../components/JadwalCard";
 import { fetchJanjiTemu } from "../redux/actions/janjiTemuActions";
 import Navbar from "../components/Navbar";
-
-// Untuk toast notification
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import apiClient from "../config/apiConfig";
 
 const JanjiTemu = () => {
   const dispatch = useDispatch();
-  const janjiTemu = useSelector((state) => state.janjiTemu);
+  const janjiTemuState = useSelector((state) => state.janjiTemu);
 
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+  const [pendingInfo, setPendingInfo] = useState(null);
+
+  // Ambil data user dari localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const janjiTemu = user?.pasien?.janjiTemu || [];
+  const hasPending = janjiTemu.some((j) => j.status === "pending");
+
+  // Cek apakah pasien punya janji temu pending
+  useEffect(() => {
+    const fetchPending = async () => {
+      if (!user?.pasien?.id_pasien) return;
+      try {
+        const token = localStorage.getItem("token");
+        const response = await apiClient.get(
+          `/janjiTemu/booked/${user.pasien.id_pasien}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const riwayat = response.data?.data || [];
+        const pending = riwayat.find((j) => j.status === "pending");
+        if (pending) {
+          setPendingInfo(pending);
+        } else {
+          setPendingInfo(null);
+        }
+      } catch (err) {
+        setPendingInfo(null);
+      }
+    };
+    fetchPending();
+  }, [user?.pasien?.id_pasien]);
 
   // Ambil data janji temu default (sudah 1 bulan ke depan via backend)
   useEffect(() => {
@@ -41,7 +72,7 @@ const JanjiTemu = () => {
     },
     loading = false,
     error = null,
-  } = janjiTemu || {};
+  } = janjiTemuState || {};
 
   // Filter data berdasarkan tanggal
   const filteredList = filterDate
@@ -121,6 +152,26 @@ const JanjiTemu = () => {
       <div>
         <Navbar />
         <p className="text-center text-red-500 py-20">{error}</p>
+      </div>
+    );
+  }
+
+  if (hasPending) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto p-6 py-20">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+            <p className="font-semibold mb-2">
+              Anda masih memiliki janji temu yang belum selesai!
+            </p>
+            <p className="mt-2">
+              Silakan batalkan janji temu tersebut sebelum memesan jadwal baru.
+              Jika sudah membatalkan tapi tidak bisa melihat daftar janji temu
+              diomohon login kembali yaa!
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

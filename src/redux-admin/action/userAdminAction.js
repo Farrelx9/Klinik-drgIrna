@@ -52,15 +52,19 @@ export const createUser = (formData) => async (dispatch) => {
       type: CREATE_USER_SUCCESS,
       payload: response.data,
     });
-
     ("Pasien berhasil ditambahkan");
     return response.data;
   } catch (error) {
+    console.log("Error response:", error.response?.data);
     dispatch({
       type: CREATE_USER_FAILURE,
-      payload: error.message,
+      payload:
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message,
     });
     ("Gagal menambahkan pasien");
+    throw error; // biar bisa ditangkap di UI
   }
 };
 
@@ -93,9 +97,13 @@ export const deleteUser = (id_pasien) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: DELETE_USER_FAILURE,
-      payload: error.message,
+      payload:
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message,
     });
     ("Gagal menghapus pasien");
+    throw error;
   }
 };
 

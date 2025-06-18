@@ -20,7 +20,7 @@ const formatDate = (isoString) => {
   };
 };
 
-const JadwalCard = ({ appointment, onSelect, isSelected }) => {
+const JadwalCard = ({ appointment, onSelect, isSelected, disableBooking }) => {
   const { id_janji, tanggal_waktu, dokter } = appointment;
   const { date, time } = formatDate(tanggal_waktu);
 
@@ -63,7 +63,7 @@ const JadwalCard = ({ appointment, onSelect, isSelected }) => {
       await dispatch(bookJanjiTemu({ id_janji, id_pasien, keluhan }));
       setTimeout(() => {
         toast.success(
-          "Berhasil memesan janji temu, tunggu konfirmasi admin paling lambat 1x24jam!"
+          "Berhasil memesan janji temu, tunggu konfirmasi admin paling lambat 1x24jam!. Jika ingin batalkan janji temu bisa di riwayat yaa"
         );
       }, 1000);
       setModalOpen(false);
@@ -103,16 +103,23 @@ const JadwalCard = ({ appointment, onSelect, isSelected }) => {
       </div>
 
       {/* Tombol Pilih Jadwal */}
-      <button
-        onClick={() => setModalOpen(true)}
-        className={`w-full py-2 px-4 rounded ${
-          isSelected
-            ? "bg-green-600 text-white"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-        }`}
-      >
-        {isSelected ? "✓ Terpilih" : "Pilih Jadwal"}
-      </button>
+      {!disableBooking && (
+        <button
+          onClick={() => setModalOpen(true)}
+          className={`w-full py-2 px-4 rounded ${
+            isSelected
+              ? "bg-green-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {isSelected ? "✓ Terpilih" : "Pilih Jadwal"}
+        </button>
+      )}
+      {disableBooking && (
+        <div className="text-red-500 text-center py-2">
+          Tidak bisa booking, masih ada janji pending
+        </div>
+      )}
 
       {/* Modal */}
       {modalOpen && (

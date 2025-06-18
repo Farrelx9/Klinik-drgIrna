@@ -14,6 +14,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { setUnreadCounts } from "../../../redux-admin/reducer/adminChatSlice";
+import { io } from "socket.io-client";
+import { socketDebug } from "../../../utils/socketDebug";
 
 export default function ChatTab({ isMobile }) {
   const dispatch = useDispatch();
@@ -27,7 +29,98 @@ export default function ChatTab({ isMobile }) {
   const [totalPages, setTotalPages] = useState(meta.totalPages || 1);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [prescriptionData, setPrescriptionData] = useState({
+    diagnosis: "",
+    medications: [{ name: "", dosage: "", instruction: "" }],
+    notes: "",
+    berlakuSampai: "2025-12-31",
+  });
   const unreadCounts = useSelector((state) => state.chatAdmin.unreadCounts);
+
+  // Socket state
+  const [socket, setSocket] = useState(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  // Get admin user info
+  const adminUser = JSON.parse(localStorage.getItem("adminUser"));
+  const id_user = adminUser?.id_user;
+
+  // Initialize socket connection for admin
+  useEffect(() => {
+    if (!id_user || userRole !== "dokter") return;
+
+    const newSocket = io("https://bejs-klinik.vercel.app/", {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Admin socket connected");
+      setIsSocketConnected(true);
+      newSocket.emit("join-admin-notifications", id_user);
+      newSocket.emit("join-admin-chat-room", id_user);
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Admin socket disconnected");
+      setIsSocketConnected(false);
+    });
+
+    // Listen for new messages from patients
+    newSocket.on("new-patient-message", (data) => {
+      console.log("New patient message received:", data);
+
+      if (data.chatId) {
+        // Update unread count for this chat
+        dispatch(
+          setUnreadCounts({
+            ...unreadCounts,
+            [data.chatId]: (unreadCounts[data.chatId] || 0) + 1,
+          })
+        );
+      }
+
+      // Show toast notification
+      toast.info(
+        `Pesan baru dari pasien: ${data.message || "Ada pesan baru"}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+
+      // Refresh chat list and detail if this chat is active
+      dispatch(getChatListForAdmin({ page, limit: 5 }));
+      if (selectedChatId === data.chatId) {
+        dispatch(getChatDetail(data.chatId));
+      }
+    });
+
+    // Listen for chat updates
+    newSocket.on("chat-updated-admin", (data) => {
+      console.log("Chat updated for admin:", data);
+      if (data.chatId === selectedChatId) {
+        dispatch(getChatDetail(data.chatId));
+      }
+      dispatch(getChatListForAdmin({ page, limit: 5 }));
+    });
+
+    setSocket(newSocket);
+
+    // Expose socket to window for debugging
+    if (typeof window !== "undefined") {
+      window.adminSocket = newSocket;
+    }
+
+    return () => {
+      if (newSocket) {
+        newSocket.emit("leave-admin-notifications", id_user);
+        newSocket.emit("leave-admin-chat-room", id_user);
+        newSocket.disconnect();
+      }
+    };
+  }, [id_user, userRole, dispatch, page, selectedChatId]);
 
   useEffect(() => {
     if (userRole !== "dokter") return;
@@ -179,6 +272,146 @@ export default function ChatTab({ isMobile }) {
     setShowEndSessionConfirm(false);
   };
 
+  // Prescription functions
+  const handleOpenPrescriptionModal = () => {
+    setShowPrescriptionModal(true);
+  };
+
+  const handleClosePrescriptionModal = () => {
+    setShowPrescriptionModal(false);
+    setPrescriptionData({
+      diagnosis: "",
+      medications: [{ name: "", dosage: "", instruction: "" }],
+      notes: "",
+      berlakuSampai: "2025-12-31",
+    });
+  };
+
+  const addMedication = () => {
+    setPrescriptionData((prev) => ({
+      ...prev,
+      medications: [
+        ...prev.medications,
+        { name: "", dosage: "", instruction: "" },
+      ],
+    }));
+  };
+
+  const removeMedication = (index) => {
+    if (prescriptionData.medications.length > 1) {
+      setPrescriptionData((prev) => ({
+        ...prev,
+        medications: prev.medications.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  const updateMedication = (index, field, value) => {
+    setPrescriptionData((prev) => ({
+      ...prev,
+      medications: prev.medications.map((med, i) =>
+        i === index ? { ...med, [field]: value } : med
+      ),
+    }));
+  };
+
+  const handleSendPrescription = () => {
+    if (!prescriptionData.diagnosis.trim()) {
+      toast.warn("Diagnosis harus diisi");
+      return;
+    }
+
+    if (
+      prescriptionData.medications.some(
+        (med) => !med.name.trim() || !med.dosage.trim()
+      )
+    ) {
+      toast.warn("Semua obat harus diisi nama dan dosis");
+      return;
+    }
+
+    // Format prescription as a message
+    const prescriptionMessage = formatPrescriptionMessage(prescriptionData);
+
+    // Send as regular message
+    dispatch(
+      kirimPesanAdmin({
+        isi: prescriptionMessage,
+        pengirim: "dokter",
+        id_chat: activeChat.id_chat,
+      })
+    )
+      .unwrap()
+      .then(() => {
+        setPesanInput("");
+        handleClosePrescriptionModal();
+        toast.success("Resep berhasil dikirim");
+      })
+      .catch((err) => {
+        toast.error("Gagal mengirim resep: " + err);
+      });
+  };
+
+  const formatPrescriptionMessage = (data) => {
+    const date = new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    // Table column widths
+    const col1 = 12,
+      col2 = 10,
+      col3 = 14;
+    const pad = (str, len) => (str || "").padEnd(len, " ");
+    const gap = "  "; // 2 spaces gap between columns
+
+    let message = `📋 RESEP MEDIS\n`;
+    message += `Tanggal: ${date}\n`;
+    message += `Pasien: ${activeChat.pasien?.nama || "Pasien"}\n`;
+    message += `Diagnosis: ${data.diagnosis}\n\n`;
+
+    message += `💊 OBAT-OBATAN:\n`;
+    message += `┌${"─".repeat(col1 + 2)}┬${"─".repeat(col2 + 2)}┬${"─".repeat(
+      col3 + 2
+    )}┐\n`;
+    message += `│ ${pad("Nama Obat", col1)} │${gap}${pad(
+      "Dosis",
+      col2
+    )} │${gap}${pad("Cara Pakai", col3)} │\n`;
+    message += `├${"─".repeat(col1 + 2)}┼${"─".repeat(col2 + 2)}┼${"─".repeat(
+      col3 + 2
+    )}┤\n`;
+
+    data.medications.forEach((med) => {
+      message += `│ ${pad(med.name, col1)} │${gap}${pad(
+        med.dosage,
+        col2
+      )} │${gap}${pad(med.instruction, col3)} │\n`;
+    });
+
+    message += `└${"─".repeat(col1 + 2)}┴${"─".repeat(col2 + 2)}┴${"─".repeat(
+      col3 + 2
+    )}┘\n`;
+
+    if (data.notes.trim()) {
+      message += `\n📝 Catatan: ${data.notes}\n`;
+    }
+
+    message += `\nDokter: ${defaultDoctor}\n`;
+    message += `SIP: ${defaultSIP}\n`;
+    message += `Berlaku sampai: ${
+      data.berlakuSampai
+        ? new Date(data.berlakuSampai).toLocaleDateString("id-ID")
+        : "-"
+    }`;
+
+    return message;
+  };
+
+  const defaultDoctor = "drg. Irna";
+  const defaultSIP = "500.16.7.2/2105/B/IP.DG/436 7.15/2024";
+
   if (userRole !== "dokter") {
     return (
       <div className="flex items-center justify-center h-full bg-white rounded-lg shadow p-6 font-poppins">
@@ -250,13 +483,21 @@ export default function ChatTab({ isMobile }) {
                     }`}
                   >
                     <div
-                      className={`rounded-lg p-3 max-w-xs md:max-w-md ${
+                      className={`rounded-lg p-3 ${
                         msg.pengirim === "pasien"
                           ? "bg-gray-100"
                           : "bg-blue-500 text-white"
                       }`}
                     >
-                      <p className="text-sm">{msg.isi}</p>
+                      {msg.isi.startsWith("📋 RESEP MEDIS") ? (
+                        <div style={{ display: "inline-block" }}>
+                          <pre className="font-mono text-xs whitespace-pre">
+                            {msg.isi}
+                          </pre>
+                        </div>
+                      ) : (
+                        <span>{msg.isi}</span>
+                      )}
                       <small
                         className={`text-xs block mt-1 ${
                           msg.pengirim === "pasien"
@@ -313,23 +554,33 @@ export default function ChatTab({ isMobile }) {
                 </div>
               </form>
 
-              {activeChat.status === "pending" && (
-                <button
-                  onClick={handleAktifkanSesi}
-                  className="mt-2 bg-green-500 text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
-                >
-                  Aktifkan Sesi
-                </button>
-              )}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {activeChat.status === "pending" && (
+                  <button
+                    onClick={handleAktifkanSesi}
+                    className="bg-green-500 text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
+                  >
+                    Aktifkan Sesi
+                  </button>
+                )}
 
-              {activeChat.status === "aktif" && (
-                <button
-                  onClick={handleAkhiriSesi}
-                  className="mt-2 bg-red-500 text-white px-4 py-1 rounded text-sm hover:bg-red-600 transition"
-                >
-                  Akhiri Sesi
-                </button>
-              )}
+                {activeChat.status === "aktif" && (
+                  <>
+                    <button
+                      onClick={handleAkhiriSesi}
+                      className="bg-red-500 text-white px-4 py-1 rounded text-sm hover:bg-red-600 transition"
+                    >
+                      Akhiri Sesi
+                    </button>
+                    <button
+                      onClick={handleOpenPrescriptionModal}
+                      className="bg-purple-500 text-white px-4 py-1 rounded text-sm hover:bg-purple-600 transition"
+                    >
+                      📋 Kirim Resep
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         ) : (
@@ -438,7 +689,25 @@ export default function ChatTab({ isMobile }) {
       <div className="hidden md:grid md:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
         <div className="flex flex-col bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Daftar Percakapan</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Daftar Percakapan</h2>
+              {/* Socket connection indicator */}
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isSocketConnected ? "bg-green-500" : "bg-red-500"
+                  }`}
+                  title={
+                    isSocketConnected
+                      ? "Socket Connected"
+                      : "Socket Disconnected"
+                  }
+                />
+                <span className="text-xs text-gray-500">
+                  {isSocketConnected ? "Online" : "Offline"}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="overflow-y-auto flex-grow">
@@ -562,13 +831,21 @@ export default function ChatTab({ isMobile }) {
                     }`}
                   >
                     <div
-                      className={`rounded-lg p-3 max-w-xs md:max-w-md ${
+                      className={`rounded-lg p-3 ${
                         msg.pengirim === "pasien"
                           ? "bg-gray-100"
                           : "bg-blue-500 text-white"
                       }`}
                     >
-                      <p className="text-sm">{msg.isi}</p>
+                      {msg.isi.startsWith("📋 RESEP MEDIS") ? (
+                        <div style={{ display: "inline-block" }}>
+                          <pre className="font-mono text-xs whitespace-pre">
+                            {msg.isi}
+                          </pre>
+                        </div>
+                      ) : (
+                        <span>{msg.isi}</span>
+                      )}
                       <small
                         className={`text-xs block mt-1 ${
                           msg.pengirim === "pasien"
@@ -625,23 +902,33 @@ export default function ChatTab({ isMobile }) {
                 </div>
               </form>
 
-              {activeChat.status === "pending" && (
-                <button
-                  onClick={handleAktifkanSesi}
-                  className="mt-2 bg-green-500 text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
-                >
-                  Aktifkan Sesi
-                </button>
-              )}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {activeChat.status === "pending" && (
+                  <button
+                    onClick={handleAktifkanSesi}
+                    className="bg-green-500 text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
+                  >
+                    Aktifkan Sesi
+                  </button>
+                )}
 
-              {activeChat.status === "aktif" && (
-                <button
-                  onClick={handleAkhiriSesi}
-                  className="mt-2 bg-red-500 text-white px-4 py-1 rounded text-sm hover:bg-red-600 transition"
-                >
-                  Akhiri Sesi
-                </button>
-              )}
+                {activeChat.status === "aktif" && (
+                  <>
+                    <button
+                      onClick={handleAkhiriSesi}
+                      className="bg-red-500 text-white px-4 py-1 rounded text-sm hover:bg-red-600 transition"
+                    >
+                      Akhiri Sesi
+                    </button>
+                    <button
+                      onClick={handleOpenPrescriptionModal}
+                      className="bg-purple-500 text-white px-4 py-1 rounded text-sm hover:bg-purple-600 transition"
+                    >
+                      📋 Kirim Resep
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         ) : (
@@ -677,6 +964,196 @@ export default function ChatTab({ isMobile }) {
                   Akhiri Sesi
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Resep */}
+      {showPrescriptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold">📋 Buat Resep Medis</h3>
+              <button
+                onClick={handleClosePrescriptionModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Diagnosis */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Diagnosis *
+                </label>
+                <textarea
+                  value={prescriptionData.diagnosis}
+                  onChange={(e) =>
+                    setPrescriptionData((prev) => ({
+                      ...prev,
+                      diagnosis: e.target.value,
+                    }))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                  placeholder="Masukkan diagnosis pasien..."
+                />
+              </div>
+
+              {/* Medications */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Obat-obatan *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addMedication}
+                    className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  >
+                    + Tambah Obat
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {prescriptionData.medications.map((med, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-medium text-gray-700">
+                          Obat #{index + 1}
+                        </span>
+                        {prescriptionData.medications.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeMedication(index)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">
+                            Nama Obat *
+                          </label>
+                          <input
+                            type="text"
+                            value={med.name}
+                            onChange={(e) =>
+                              updateMedication(index, "name", e.target.value)
+                            }
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Contoh: Paracetamol"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">
+                            Dosis *
+                          </label>
+                          <input
+                            type="text"
+                            value={med.dosage}
+                            onChange={(e) =>
+                              updateMedication(index, "dosage", e.target.value)
+                            }
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Contoh: 500mg 3x sehari"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">
+                            Cara Pakai
+                          </label>
+                          <input
+                            type="text"
+                            value={med.instruction}
+                            onChange={(e) =>
+                              updateMedication(
+                                index,
+                                "instruction",
+                                e.target.value
+                              )
+                            }
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Contoh: Diminum setelah makan"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Catatan Tambahan
+                </label>
+                <textarea
+                  value={prescriptionData.notes}
+                  onChange={(e) =>
+                    setPrescriptionData((prev) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                  placeholder="Catatan tambahan untuk pasien..."
+                />
+              </div>
+
+              {/* Berlaku Sampai */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Berlaku Sampai
+                </label>
+                <input
+                  type="date"
+                  value={prescriptionData.berlakuSampai}
+                  onChange={(e) =>
+                    setPrescriptionData((prev) => ({
+                      ...prev,
+                      berlakuSampai: e.target.value,
+                    }))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Preview Resep:
+              </h4>
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono">
+                {formatPrescriptionMessage(prescriptionData)}
+              </pre>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleClosePrescriptionModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSendPrescription}
+                className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+              >
+                Kirim Resep
+              </button>
             </div>
           </div>
         </div>

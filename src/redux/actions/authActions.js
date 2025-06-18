@@ -120,14 +120,9 @@ export const login = (email, password, navigate) => {
             headers: { Authorization: `Bearer ${data.token}` },
           });
 
-          localStorage.setItem(
-            "user",
-            JSON.stringify(profileResponse.data.user)
-          );
+          localStorage.setItem("user", JSON.stringify(data.user));
 
-          dispatch(
-            loginSuccess({ user: profileResponse.data.user, token: data.token })
-          );
+          dispatch(loginSuccess({ user: data.user, token: data.token }));
           return true;
         }
       }

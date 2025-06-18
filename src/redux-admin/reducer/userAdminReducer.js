@@ -7,6 +7,7 @@ import {
   DELETE_USER_SUCCESS,
   DELETE_USER_FAILURE,
   SET_USER_PAGE,
+  CREATE_USER_FAILURE,
 } from "../action/userAdminAction";
 
 const initialState = {
@@ -48,6 +49,13 @@ const userAdminReducer = (state = initialState, action) => {
       return {
         ...state,
         users: [action.payload, ...state.users],
+        error: null,
+      };
+
+    case CREATE_USER_FAILURE:
+      return {
+        ...state,
+        error: action.payload,
       };
 
     case UPDATE_USER_SUCCESS:

@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { submitReview } from "../redux/actions/reviewAction";
+import { io } from "socket.io-client";
+import { socketDebug } from "../utils/socketDebug";
 
 export default function Konsultasi() {
   const dispatch = useDispatch();
@@ -32,14 +34,116 @@ export default function Konsultasi() {
   // Ambil data pengguna dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const id_pasien = user?.pasien?.id_pasien;
+  const id_user = user?.id_user;
 
   // State untuk modal review
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [rating, setRating] = useState(null); // null berarti belum dipilih
+  const [rating, setRating] = useState(null);
   const [comment, setComment] = useState("");
 
   // Tambahkan state unreadCounts
   const [unreadCounts, setUnreadCounts] = useState({});
+
+  // Socket state
+  const [socket, setSocket] = useState(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (!id_user) return;
+
+    const newSocket = io("https://bejs-klinik.vercel.app/", {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected");
+      setIsSocketConnected(true);
+      newSocket.emit("join-notifications", id_user);
+      // Join room untuk chat notifications
+      newSocket.emit("join-chat-room", id_user);
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Socket disconnected");
+      setIsSocketConnected(false);
+    });
+
+    // Event untuk notifikasi pesan baru dari dokter
+    newSocket.on("new-message", (data) => {
+      console.log("New message received:", data);
+
+      // Jika ada chatId, update unread count
+      if (data.chatId) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [data.chatId]: (prev[data.chatId] || 0) + 1,
+        }));
+      }
+
+      // Tampilkan toast notification
+      toast.info(
+        `Pesan baru dari dokter: ${data.message || "Ada pesan baru"}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+
+      // Refresh chat list dan detail jika chat sedang aktif
+      dispatch(getChatListForUser({ id_pasien, page, limit: 5 }));
+      if (selectedChatId === data.chatId) {
+        dispatch(getChatDetailForUser(data.chatId));
+      }
+    });
+
+    newSocket.on("unread-message-notification", (data) => {
+      console.log("New unread message notification:", data);
+      toast.info(data.message, { position: "top-right", autoClose: 3000 });
+
+      if (data.chatId) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [data.chatId]: (prev[data.chatId] || 0) + 1,
+        }));
+      }
+
+      dispatch(getChatListForUser({ id_pasien, page, limit: 5 }));
+    });
+
+    newSocket.on("unread-count-update", (data) => {
+      console.log("Unread count updated:", data);
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [data.chatId]: data.unreadCount,
+      }));
+    });
+
+    // Event untuk update chat real-time
+    newSocket.on("chat-updated", (data) => {
+      console.log("Chat updated:", data);
+      if (data.chatId === selectedChatId) {
+        dispatch(getChatDetailForUser(data.chatId));
+      }
+      dispatch(getChatListForUser({ id_pasien, page, limit: 5 }));
+    });
+
+    setSocket(newSocket);
+
+    // Expose socket to window for debugging
+    if (typeof window !== "undefined") {
+      window.patientSocket = newSocket;
+    }
+
+    return () => {
+      if (newSocket) {
+        newSocket.emit("leave-notifications", id_user);
+        newSocket.emit("leave-chat-room", id_user);
+        newSocket.disconnect();
+      }
+    };
+  }, [id_user, dispatch, id_pasien, page, selectedChatId]);
 
   // Load list chat saat komponen mount atau page berubah
   useEffect(() => {
@@ -65,7 +169,7 @@ export default function Konsultasi() {
     }
   }, [dispatch, id_chat]);
 
-  // Implement polling for new messages
+  // Implement polling for new messages (keep existing polling for fallback)
   useEffect(() => {
     let intervalId;
     if (selectedChatId && isInputFocused) {
@@ -78,6 +182,7 @@ export default function Konsultasi() {
     };
   }, [dispatch, selectedChatId, isInputFocused]);
 
+  // Load unread counts for all chats
   useEffect(() => {
     if (chatList.length > 0) {
       Promise.all(
@@ -130,6 +235,7 @@ export default function Konsultasi() {
       .then(() => {
         setPesanInput("");
         toast.success("Pesan berhasil dikirim");
+        // Socket notification will be automatically sent from backend
       })
       .catch((err) => {
         toast.error("Gagal mengirim pesan: " + (err || "Server error"));
@@ -179,6 +285,17 @@ export default function Konsultasi() {
               <ChevronLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h2 className="text-lg font-semibold">Riwayat Chat</h2>
+            {/* Socket connection indicator */}
+            <div className="ml-auto">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isSocketConnected ? "bg-green-500" : "bg-red-500"
+                }`}
+                title={
+                  isSocketConnected ? "Socket Connected" : "Socket Disconnected"
+                }
+              />
+            </div>
           </div>
         </div>
         <div className="overflow-y-auto max-h-[70vh] p-4 space-y-3">
@@ -297,13 +414,25 @@ export default function Konsultasi() {
                     }`}
                   >
                     <div
-                      className={`rounded-lg p-3 max-w-xs md:max-w-md ${
+                      className={`rounded-lg p-3 ${
                         msg.pengirim === "pasien"
                           ? "bg-blue-500 text-white"
                           : "bg-gray-100"
+                      } ${
+                        msg.isi.startsWith("📋 RESEP MEDIS")
+                          ? ""
+                          : "max-w-xs md:max-w-md"
                       }`}
                     >
-                      <p className="text-sm">{msg.isi}</p>
+                      {msg.isi.startsWith("📋 RESEP MEDIS") ? (
+                        <div style={{ display: "inline-block" }}>
+                          <pre className="font-mono text-xs whitespace-pre">
+                            {msg.isi}
+                          </pre>
+                        </div>
+                      ) : (
+                        <p className="text-sm">{msg.isi}</p>
+                      )}
                       <small className="text-xs block mt-1 opacity-80">
                         {new Date(msg.waktu_kirim).toLocaleTimeString("id-ID", {
                           hour: "numeric",

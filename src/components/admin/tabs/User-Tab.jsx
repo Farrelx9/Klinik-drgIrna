@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as actions from "../../../redux-admin/action/userAdminAction";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react";
 
 export default function UserTab() {
   const dispatch = useDispatch();
@@ -33,8 +33,11 @@ export default function UserTab() {
     alamat: "",
     jenis_kelamin: "",
     tanggal_lahir: "",
+    email: "",
+    password: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle input form
   const handleChange = (e) => {
@@ -48,12 +51,34 @@ export default function UserTab() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { nama } = formData;
+    const { nama, email, password, jenis_kelamin } = formData;
 
+    // Validasi wajib isi
     if (!nama) {
       toast.error("Nama harus diisi");
       return;
     }
+    if (!email) {
+      toast.error("Email harus diisi");
+      return;
+    }
+    // Validasi format email sederhana
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Format email tidak valid");
+      return;
+    }
+    if (!editingId && !password) {
+      toast.error("Password harus diisi");
+      return;
+    }
+    if (!jenis_kelamin) {
+      toast.error("Jenis kelamin harus dipilih");
+      return;
+    }
+
+    // Bisa tambahkan validasi lain jika perlu (misal: password min 6 karakter)
+
+    console.log("Data yang dikirim:", formData);
 
     try {
       if (editingId) {
@@ -81,6 +106,8 @@ export default function UserTab() {
       alamat: "",
       jenis_kelamin: "",
       tanggal_lahir: "",
+      email: "",
+      password: "",
     });
     setEditingId(null);
   };
@@ -125,6 +152,8 @@ export default function UserTab() {
       tanggal_lahir: pasien.tanggal_lahir
         ? new Date(pasien.tanggal_lahir).toISOString().split("T")[0]
         : "",
+      email: pasien.email || (pasien.user && pasien.user.email) || "",
+      password: "", // kosongkan password saat edit
     });
     setEditingId(pasien.id_pasien);
     setShowModal(true);
@@ -223,6 +252,53 @@ export default function UserTab() {
                   />
                 </div>
 
+                {/* Email */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Email
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded"
+                    required
+                    disabled={!!editingId} // tidak bisa edit email
+                  />
+                </div>
+
+                {/* Password (hanya saat tambah) */}
+                {!editingId && (
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                        tabIndex={-1}
+                        onClick={() => setShowPassword((v) => !v)}
+                      >
+                        {showPassword ? (
+                          <Eye size={18} />
+                        ) : (
+                          <EyeOff size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* No Telepon */}
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -316,7 +392,12 @@ export default function UserTab() {
                 >
                   Nama
                 </th>
-
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -346,9 +427,14 @@ export default function UserTab() {
                 </tr>
               ) : (
                 users.map((pasien) => (
-                  <tr key={pasien.id_pasien}>
+                  <tr key={pasien.id_pasien || pasien.email || pasien.nama}>
                     <td className="px-6 py-4 whitespace-nowrap font-semibold">
                       {pasien.nama}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {pasien.email ||
+                        (pasien.user && pasien.user.email) ||
+                        "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {pasien.noTelp || "-"}

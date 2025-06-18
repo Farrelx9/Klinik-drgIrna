@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { fetchBookedAppointments } from "../redux/actions/profileActions";
 import { submitReview } from "../redux/actions/reviewAction";
 import { toast } from "react-toastify";
+import apiClient from "../config/apiConfig";
+import Swal from "sweetalert2";
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -226,6 +228,46 @@ export default function Profile() {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     await dispatch(changePassword(otp, newPassword, formData.currentPassword));
+  };
+
+  // Handler untuk cancel janji temu
+  const handleCancelAppointment = (appointment) => {
+    Swal.fire({
+      title: "Batalkan Janji Temu?",
+      text: "Yakin ingin membatalkan janji temu ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, Batalkan!",
+      cancelButtonText: "Batal",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          console.log("Cancel janji temu id_janji:", appointment.id_janji);
+          const token = localStorage.getItem("token");
+          const response = await apiClient.patch(
+            `/janjiTemu/${appointment.id_janji}/cancel`,
+            { id_pasien: user.pasien.id_pasien },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          if (response.data.success) {
+            toast.success("Janji temu berhasil dibatalkan");
+            dispatch(
+              fetchBookedAppointments(user.pasien.id_pasien, currentPage)
+            );
+          } else {
+            toast.error(
+              response.data.message || "Gagal membatalkan janji temu"
+            );
+          }
+        } catch (error) {
+          toast.error(
+            error.response?.data?.message || "Gagal membatalkan janji temu"
+          );
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -555,6 +597,9 @@ export default function Profile() {
                               <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
                                 Rating
                               </th>
+                              <th className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                Aksi
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
@@ -675,6 +720,20 @@ export default function Profile() {
                                     <span className="text-gray-400">
                                       Belum direview
                                     </span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 max-w-xs overflow-hidden break-words">
+                                  {appointment.status === "pending" && (
+                                    <button
+                                      type="button"
+                                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCancelAppointment(appointment);
+                                      }}
+                                    >
+                                      Batalkan
+                                    </button>
                                   )}
                                 </td>
                               </tr>

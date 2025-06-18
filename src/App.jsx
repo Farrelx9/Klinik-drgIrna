@@ -2,7 +2,9 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
+import { useEffect } from "react";
+import { io } from "socket.io-client";
 import store from "./store";
 
 // Pages
@@ -26,6 +28,49 @@ import Pembayaran from "./pages/Pembayaran";
 import PembayaranSuksesHandler from "./pages/PembayaranSuksesHandler";
 
 function App() {
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const id_user = user?.id_user;
+    if (!id_user) return;
+
+    const socket = io("https://bejs-klinik.vercel.app/", {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+    });
+
+    socket.on("connect", () => {
+      console.log("GLOBAL SOCKET CONNECTED");
+      socket.emit("join-notifications", id_user);
+      socket.emit("join-chat-room", id_user);
+    });
+
+    socket.on("new-message", (data) => {
+      toast.info(
+        `Pesan baru dari dokter: ${data.message || "Ada pesan baru"}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    });
+
+    socket.on("new-patient-message", (data) => {
+      toast.info(
+        `Pesan baru dari pasien: ${data.message || "Ada pesan baru"}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    });
+
+    window.globalSocket = socket;
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <Provider store={store}>
       <Router>

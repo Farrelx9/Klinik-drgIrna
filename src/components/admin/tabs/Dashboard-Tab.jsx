@@ -13,6 +13,10 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
 } from "recharts";
 import { formatDateTimeWithWIB } from "../../../utils/timeUtils";
 
@@ -36,6 +40,15 @@ export default function DashboardTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [averageReviewRating, setAverageReviewRating] = useState(0);
   const [loadingAverageReview, setLoadingAverageReview] = useState(true);
+
+  // New state for patient chart
+  const [patientChartData, setPatientChartData] = useState([]);
+  const [loadingPatientChart, setLoadingPatientChart] = useState(true);
+  const [patientStats, setPatientStats] = useState({
+    totalPatients: 0,
+    averagePatientsPerMonth: 0,
+    growthRate: 0,
+  });
 
   // Helper function: Format waktu (HH:mm)
   const formatTime = (isoString) => {
@@ -195,6 +208,115 @@ export default function DashboardTab() {
     }
   };
 
+  // Fungsi untuk fetch data pasien dan proses menjadi chart
+  const fetchPatientChartData = async () => {
+    setLoadingPatientChart(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { limit: 1000 }, // Ambil semua data pasien untuk analisis
+      };
+
+      const response = await apiClient.get("/pasienAdmin/pasien", config);
+      const patients = response.data?.data || [];
+
+      if (patients.length === 0) {
+        console.log("Tidak ada data pasien");
+        setPatientChartData([]);
+        setPatientStats({
+          totalPatients: 0,
+          averagePatientsPerMonth: 0,
+          growthRate: 0,
+        });
+        return;
+      }
+
+      // Kelompokkan berdasarkan bulan registrasi
+      const grouped = patients.reduce((acc, patient) => {
+        const date = new Date(patient.createdAt || patient.created_at);
+        const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
+
+        if (!acc[monthYear]) {
+          acc[monthYear] = {
+            count: 0,
+            patients: [],
+          };
+        }
+
+        acc[monthYear].count += 1;
+        acc[monthYear].patients.push(patient);
+
+        return acc;
+      }, {});
+
+      // Format untuk chart dan hitung statistik
+      const chartData = Object.entries(grouped)
+        .map(([key, value]) => {
+          const [year, month] = key.split("-");
+          const monthName = new Date(year, month - 1).toLocaleString("id-ID", {
+            month: "long",
+            year: "numeric",
+          });
+
+          return {
+            month: monthName,
+            monthKey: key,
+            jumlahPasien: value.count,
+            cumulative: 0, // Akan dihitung setelah sorting
+          };
+        })
+        .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+
+      // Hitung cumulative patients
+      let cumulative = 0;
+      chartData.forEach((item) => {
+        cumulative += item.jumlahPasien;
+        item.cumulative = cumulative;
+      });
+
+      // Hitung statistik
+      const totalPatients = patients.length;
+      const monthsWithData = chartData.length;
+      const averagePatientsPerMonth =
+        monthsWithData > 0 ? (totalPatients / monthsWithData).toFixed(1) : 0;
+
+      // Hitung growth rate (perbandingan 2 bulan terakhir)
+      let growthRate = 0;
+      if (chartData.length >= 2) {
+        const lastMonth = chartData[chartData.length - 1].jumlahPasien;
+        const previousMonth = chartData[chartData.length - 2].jumlahPasien;
+        if (previousMonth > 0) {
+          growthRate = (
+            ((lastMonth - previousMonth) / previousMonth) *
+            100
+          ).toFixed(1);
+        }
+      }
+
+      setPatientChartData(chartData);
+      setPatientStats({
+        totalPatients,
+        averagePatientsPerMonth: parseFloat(averagePatientsPerMonth),
+        growthRate: parseFloat(growthRate),
+      });
+    } catch (error) {
+      console.error("Error fetching patient chart data:", error);
+      setPatientChartData([]);
+      setPatientStats({
+        totalPatients: 0,
+        averagePatientsPerMonth: 0,
+        growthRate: 0,
+      });
+    } finally {
+      setLoadingPatientChart(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const config = {
@@ -274,6 +396,9 @@ export default function DashboardTab() {
 
     // Fetch transaksi bulanan
     fetchMonthlyTransactions();
+
+    // Fetch patient chart data
+    fetchPatientChartData();
   }, []);
 
   // Ganti Pagination UI dengan versi lebih modern dan user-friendly
@@ -346,21 +471,8 @@ export default function DashboardTab() {
 
   return (
     <>
-      {/* Statistik Dasar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 font-poppins">
-        {/* Total Pasien */}
-        <div className="bg-white rounded-lg shadow p-4 md:p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
-              <Users className="h-5 w-5 md:h-6 md:w-6" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Pasien</p>
-              <p className="text-xl md:text-2xl font-bold">{totalPasien}</p>
-            </div>
-          </div>
-        </div>
-
+      {/* Statistik Dasar & Pasien */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6 font-poppins">
         {/* Janji Temu Hari Ini */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <div className="flex items-center">
@@ -399,6 +511,83 @@ export default function DashboardTab() {
               <p className="text-sm text-gray-500">Rata-rata Review</p>
               <p className="text-xl md:text-2xl font-bold">
                 {loadingAverageReview ? "Loading..." : averageReviewRating}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Total Pasien (Ungu) */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
+              <Users className="h-5 w-5 md:h-6 md:w-6" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Total Pasien</p>
+              <p className="text-xl md:text-2xl font-bold">
+                {loadingPatientChart
+                  ? "Loading..."
+                  : patientStats.totalPatients}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Rata-rata/Bulan */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-indigo-100 text-indigo-500 mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:w-6 md:h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 1 3m-1-3h-9.5m0 0-1 3m1-3v11.25A2.25 2.25 0 0 0 6 19.5h2.25"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Rata-rata/Bulan</p>
+              <p className="text-xl md:text-2xl font-bold">
+                {loadingPatientChart
+                  ? "Loading..."
+                  : patientStats.averagePatientsPerMonth}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Pertumbuhan */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-emerald-100 text-emerald-500 mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:w-6 md:h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 18 9 11.25l4.306 4.306a2.25 2.25 0 0 0 3.179 0l3.474-3.474M2.25 18h19.5a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 21.75 4.5H2.25A2.25 2.25 0 0 0 0 6.75v9A2.25 2.25 0 0 0 2.25 18Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Pertumbuhan</p>
+              <p className="text-xl md:text-2xl font-bold">
+                {loadingPatientChart
+                  ? "Loading..."
+                  : `${patientStats.growthRate}%`}
               </p>
             </div>
           </div>
@@ -458,6 +647,72 @@ export default function DashboardTab() {
                   fill="#82ca9d"
                 />
               </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Chart Pertumbuhan Pasien */}
+      <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">
+          Pertumbuhan Pasien Bulanan
+        </h2>
+        {loadingPatientChart ? (
+          <div className="h-80 flex items-center justify-center">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : patientChartData.length === 0 ? (
+          <div className="h-80 flex items-center justify-center text-gray-500">
+            Tidak ada data pasien
+          </div>
+        ) : (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={patientChartData}
+                margin={{
+                  top: 20,
+                  right: 20,
+                  left: 20,
+                  bottom: 70,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" angle={-45} textAnchor="end" dy={10} />
+                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "Jumlah Pasien Baru") {
+                      return [value, "Pasien Baru"];
+                    }
+                    return [value, "Total Pasien"];
+                  }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  align="center"
+                  wrapperStyle={{ top: 0, left: 0, right: 0 }}
+                />
+                <Area
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="jumlahPasien"
+                  name="Jumlah Pasien Baru"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  fillOpacity={0.3}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="cumulative"
+                  name="Total Pasien"
+                  stroke="#82ca9d"
+                  strokeWidth={3}
+                  dot={{ fill: "#82ca9d", strokeWidth: 2, r: 4 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}
