@@ -4,6 +4,7 @@ import * as actions from "../../../redux-admin/action/rekapPembayaranAction";
 import * as pasienActions from "../../../redux-admin/action/pasienAction";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { formatDate, formatTimeWithWIB } from "../../../utils/timeUtils";
 
 export default function RekapPembayaranPage() {
   const dispatch = useDispatch();
@@ -256,6 +257,9 @@ export default function RekapPembayaranPage() {
                   Tanggal
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Waktu Input
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total Pembayaran
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -279,7 +283,16 @@ export default function RekapPembayaranPage() {
                     <td className="px-6 py-4">{rekap.id_rekap}</td>
                     <td className="px-6 py-4">{rekap.pasien?.nama || "-"}</td>
                     <td className="px-6 py-4">
-                      {new Date(rekap.tanggal).toLocaleDateString("id-ID")}
+                      {rekap.tanggal ? formatDate(rekap.tanggal) : "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {rekap.createdAt
+                        ? formatTimeWithWIB(
+                            new Date(rekap.createdAt).toLocaleTimeString(
+                              "id-ID"
+                            )
+                          )
+                        : "-"}
                     </td>
                     <td className="px-6 py-4">
                       Rp{" "}
