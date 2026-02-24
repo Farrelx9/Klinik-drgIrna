@@ -88,7 +88,7 @@ export default function Konsultasi() {
         {
           position: "top-right",
           autoClose: 3000,
-        }
+        },
       );
 
       // Refresh chat list dan detail jika chat sedang aktif
@@ -194,21 +194,36 @@ export default function Konsultasi() {
             .catch((err) => {
               return { id: chat.id_chat, count: 0 };
             });
-        })
+        }),
       ).then((results) => {
         const counts = {};
+        let total = 0; // ✅ Tambah ini
         results.forEach(({ id, count }) => {
           counts[id] = count;
+          total += count; // ✅ Tambah ini
         });
 
         setUnreadCounts(counts);
+        // ✅ Update localStorage untuk badge di Home
+        localStorage.setItem("totalUnreadCount", total.toString());
+        window.dispatchEvent(new Event("storage"));
       });
     }
   }, [chatList]);
 
   const handleChatSelect = async (chat) => {
+    // ✅ Ambil oldCount sebelum mark as read
+    const oldCount = unreadCounts[chat.id_chat] || 0;
+
     setSelectedChatId(chat.id_chat);
     await markAllMessagesAsReadUser(chat.id_chat);
+
+    // ✅ Update total unread di localStorage
+    const current = parseInt(localStorage.getItem("totalUnreadCount") || "0");
+    const newTotal = Math.max(0, current - oldCount);
+    localStorage.setItem("totalUnreadCount", newTotal.toString());
+    window.dispatchEvent(new Event("storage"));
+
     // Refresh unread count
     const count = await fetchUnreadCountUser(chat.id_chat);
     setUnreadCounts((prev) => ({ ...prev, [chat.id_chat]: count }));
@@ -229,7 +244,7 @@ export default function Konsultasi() {
       kirimPesanPasien({
         isi: pesanInput,
         id_chat: activeChat.id_chat,
-      })
+      }),
     )
       .unwrap()
       .then(() => {
@@ -253,7 +268,7 @@ export default function Konsultasi() {
         id_konsultasi: selectedChatId,
         rating,
         komentar: comment,
-      })
+      }),
     )
       .unwrap()
       .then(() => {
@@ -388,15 +403,15 @@ export default function Konsultasi() {
                     activeChat.status === "aktif"
                       ? "text-green-500"
                       : activeChat.status === "pending"
-                      ? "text-yellow-500"
-                      : "text-red-500"
+                        ? "text-yellow-500"
+                        : "text-red-500"
                   }`}
                 >
                   {activeChat.status === "aktif"
                     ? "Sedang aktif"
                     : activeChat.status === "pending"
-                    ? "Menunggu aktivasi"
-                    : "Sesi selesai"}
+                      ? "Menunggu aktivasi"
+                      : "Sesi selesai"}
                 </div>
               </div>
             </div>
@@ -522,7 +537,7 @@ export default function Konsultasi() {
                     <div className="text-xs text-gray-500 mt-1">
                       {activeChat.review[0].createdAt
                         ? new Date(
-                            activeChat.review[0].createdAt
+                            activeChat.review[0].createdAt,
                           ).toLocaleDateString("id-ID")
                         : ""}
                     </div>

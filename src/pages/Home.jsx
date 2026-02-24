@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import drgIrna from "../assets/images/drg irna.png";
@@ -11,6 +11,30 @@ import {
   MessageCircleCodeIcon,
 } from "lucide-react";
 export default function Beranda() {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const loadCount = () => {
+      const count = parseInt(localStorage.getItem("totalUnreadCount") || "0");
+      setUnreadCount(count);
+    };
+
+    loadCount(); // Load awal
+
+    // Listen perubahan dari tab/window lain
+    const handler = (e) => {
+      if (e.key === "totalUnreadCount") loadCount();
+    };
+    window.addEventListener("storage", handler);
+
+    // Polling backup tiap 15 detik
+    const interval = setInterval(loadCount, 15000);
+
+    return () => {
+      window.removeEventListener("storage", handler);
+      clearInterval(interval);
+    };
+  }, []);
   return (
     <div>
       <Navbar />
@@ -63,6 +87,7 @@ export default function Beranda() {
                 description="Akses chat dengan dokter setelah melakukan pembayaran disini!"
                 icon={<MessageCircleCodeIcon size={32} />}
                 link="/konsultasi"
+                badgeCount={unreadCount}
               />
             </div>
           </div>
